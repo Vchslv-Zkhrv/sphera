@@ -1,31 +1,36 @@
 import typing as _typing
-
 import datetime as _dt
 import hashlib as _hash
 import random as _rand
 
+import fastapi as _fastapi
 from sqlalchemy import orm as _orm
+from pydantic import BaseModel as _BM
 
 import models as _models
 import database as _database
 
-class InvalidSignError(Exception):
+
+class CookieError(Exception):
     pass
 
 
-class InvalidCookieEror(Exception):
+class InvalidSignError(CookieError):
+    pass
+
+
+class InvalidCookieEror(CookieError):
     pass
 
 
 async def genetate_cookie(
-        model: _database.Base,
+        model: _models.signable,
         db: _orm.Session
 ):
 
     """
     Создает случайную подпись для куки и сохраняет ее в базе данных.
     Вовзращает новое значение куки.
-    Должна использоваться при каждом запросе
     """
 
     timestamp = str(_dt.datetime.now().timestamp()+_rand.randint(0, 99999999))
@@ -72,3 +77,19 @@ async def check_admin_cookie(
         db: _orm.Session
 ) -> _models.Admin:
     return await check_cookie(cookie, _models.Admin, db)
+
+
+async def get_signed_response(
+        data: _typing.Optional[_BM],
+        model: _models.signable,
+        se: _orm.Session
+):
+
+    """
+    Создает новую подпись куки и формирует http-запрос
+    """
+
+    resp = _fastapi.Response(data.json() if data else None, media_type="application/json")
+    cookie = await genetate_cookie(model, se)
+    resp.set_cookie("user", cookie, httponly=True)
+    return resp

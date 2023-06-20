@@ -54,6 +54,7 @@ class StudentCreate(_Base):
     fname: str
     lname: str
     sname: _typing.Optional[str] = _Field(default="")
+    password: str
 
 
 class TeacherCreate(_Base):
@@ -65,6 +66,7 @@ class TeacherCreate(_Base):
     company: int
     specializations: _typing.List[str]
     bio: _typing.Optional[str] = _Field(default="")
+    passowrd: str
 
 
 class StudentShort(_Base):

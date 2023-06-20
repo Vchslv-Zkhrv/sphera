@@ -1,3 +1,5 @@
 backend/venv
 backend/data
 .vscode
+backend.__pycache__
+backend/config.py

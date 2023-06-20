@@ -18,6 +18,7 @@ class User(_db.Base):
     date_created = _sql.Column(_sql.DateTime)
     date_online = _sql.Column(_sql.DateTime)
     online = _sql.Column(_sql.Boolean)
+    sign = _sql.Column(_sql.String, nullable=False)
 
     groups = _orm.relationship("GroupStudents", back_populates="student")
     sessions = _orm.relationship("IndividualSessions", back_populates="user")
@@ -257,8 +258,10 @@ class Admin(_db.Base):
 
     __tablename__ = "admin"
 
-    login = _sql.Column(_sql.String, primary_key=True)
+    id = _sql.Column(_sql.Integer, primary_key=True, index=True)
+    login = _sql.Column(_sql.String, primary_key=True, index=True)
     password = _sql.Column(_sql.String, nullable=False)
+    sign = _sql.Column(_sql.String)
 
 
 class Link(_db.Base):

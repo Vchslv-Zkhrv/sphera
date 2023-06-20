@@ -280,3 +280,19 @@ class CreateLink(_Base):
     limit: _typing.Optional[int] = None
     ttl: _typing.Optional[_dt.time] = None
     target: int
+
+
+class Notification(_Base):
+
+    id: int
+    title: str
+    description: _typing.Optional[str] = None
+    url: _typing.Optional[str] = None
+    date: _dt.datetime
+
+
+class CreateNotification(_Base):
+
+    title: str
+    description: _typing.Optional[str] = None
+    date: _dt.datetime

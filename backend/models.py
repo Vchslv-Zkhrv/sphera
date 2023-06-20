@@ -17,6 +17,7 @@ class User(_db.Base):
     sname = _sql.Column(_sql.String, nullable=True)
     date_created = _sql.Column(_sql.DateTime)
     date_online = _sql.Column(_sql.DateTime)
+    online = _sql.Column(_sql.Boolean)
 
     groups = _orm.relationship("GroupStudents", back_populates="student")
     sessions = _orm.relationship("IndividualSessions", back_populates="user")
@@ -24,6 +25,7 @@ class User(_db.Base):
     progresses = _orm.relationship("Progress", back_populates="student")
     chats = _orm.relationship("ChatMembers", back_populates="member")
     activities = _orm.relationship("UserActivities", back_populates="user")
+    notifications = _orm.relationship("Notification", back_populates="user")
 
 
 class UserActivities(_db.Base):
@@ -142,7 +144,6 @@ class Group(_db.Base):
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
     name = _sql.Column(_sql.String, unique=True, nullable=False, index=True)
     teacher_id = _sql.Column(_sql.Integer, _sql.ForeignKey("teacher.user_id"))
-    date_created = _sql.Column(_sql.DateTime)
 
     teacher = _orm.relationship("Teacher", back_populates="groups")
     students = _orm.relationship("GroupStudents", back_populates="group")
@@ -234,6 +235,7 @@ class Chat(_db.Base):
     __tablename__ = "chat"
 
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
+    name = _sql.Column(_sql.String, nullable=True)
     date_created = _sql.Column(_sql.DateTime)
 
     members = _orm.relationship("ChatMembers", back_populates="chat")
@@ -249,3 +251,37 @@ class ChatMembers(_db.Base):
 
     chat = _orm.relationship("Chat", back_populates="members")
     member = _orm.relationship("User", back_populates="chats")
+
+
+class Admin(_db.Base):
+
+    __tablename__ = "admin"
+
+    login = _sql.Column(_sql.String, primary_key=True)
+    password = _sql.Column(_sql.String, nullable=False)
+
+
+class Link(_db.Base):
+
+    __tablename__ = "link"
+
+    url = _sql.Column(_sql.String, primary_key=True)
+    action = _sql.Column(_sql.String, nullable=False)
+    target = _sql.Column(_sql.Integer, nullable=False, index=True)
+    date_expired = _sql.Column(_sql.DateTime, nullable=True)
+    limit = _sql.Column(_sql.Integer, nullable=True)
+    count_used = _sql.Column(_sql.Integer, default=0)
+
+
+class Notification(_db.Base):
+
+    __tablename__ = "notification"
+
+    id = _sql.Column(_sql.Integer, primary_key=True, index=True)
+    user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), index=True)
+    date_alarm = _sql.Column(_sql.DateTime, nullable=False)
+    title = _sql.Column(_sql.String, nullable=False)
+    descritption = _sql.Column(_sql.String, nullable=True)
+    url = _sql.Column(_sql.String, nullable=True)
+
+    user = _orm.relationship("User", back_populates="notifications")

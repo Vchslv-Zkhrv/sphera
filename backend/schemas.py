@@ -27,11 +27,21 @@ class _User(_Base):
     lname: str
     sname: _typing.Optional[str] = _Field(default="")
     date_online: _dt.datetime
-    online: bool
 
 
 class Student(_User):
     pass
+
+
+class StudentUpdate(_Base):
+
+    confirmation_password: str
+    confirmation_email: str
+    password: _typing.Optional[str]
+    email: _typing.Optional[str]
+    fname: _typing.Optional[str]
+    lname: _typing.Optional[str]
+    sname: _typing.Optional[str]
 
 
 class Teacher(_User):
@@ -298,3 +308,9 @@ class CreateNotification(_Base):
     title: str
     description: _typing.Optional[str] = None
     date: _dt.datetime
+
+
+class AuthSchema(_Base):
+
+    login: str
+    password: str

@@ -3,3 +3,4 @@ backend/data
 .vscode
 backend/__pycache__
 backend/config.py
+backend/logs

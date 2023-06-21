@@ -19,7 +19,6 @@ class User(_db.Base):
     sname = _sql.Column(_sql.String, nullable=True)
     date_created = _sql.Column(_sql.DateTime)
     date_online = _sql.Column(_sql.DateTime)
-    online = _sql.Column(_sql.Boolean)
     sign = _sql.Column(_sql.String, nullable=False)
 
     groups: _orm.Mapped[_typing.List["GroupStudents"]] = \
@@ -198,7 +197,7 @@ class Group(_db.Base):
     teacher: _orm.Mapped["Teacher"] = \
         _orm.relationship(back_populates="groups")
 
-    students: _orm.Mapped[_typing.List["User"]] = \
+    students: _orm.Mapped[_typing.List["GroupStudents"]] = \
         _orm.relationship(back_populates="group")
 
     sessions: _orm.Mapped[_typing.List["GroupSessions"]] = \

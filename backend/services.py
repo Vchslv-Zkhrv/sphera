@@ -1,5 +1,3 @@
-import typing as _typing
-
 import fastapi as _fastapi
 import datetime as _dt
 import sqlalchemy.orm as _orm
@@ -43,7 +41,6 @@ async def create_student(
         email=data.email,
         password=password,
         role="student",
-        online=True,
         date_created=_dt.datetime.utcnow(),
         date_online=_dt.datetime.utcnow(),
         sign=""
@@ -64,6 +61,19 @@ def update_user_online(
     return user
 
 
+async def auth_student(
+        login: str,
+        password: str,
+        se: _orm.Session
+):
+    user = se.query(_models.User).filter_by(email=login).first()
+    if not user:
+        raise _fastapi.HTTPException(401, "No such user")
+    if not _hash.bcrypt.hash(password + PASSWORD_SALT):
+        raise _fastapi.HTTPException(401, "invalid password")
+    return user
+
+
 async def get_student_account(
         cookie: str,
         se: _orm.Session
@@ -80,4 +90,46 @@ async def get_teacher_account(
     user = await _cookies.check_user_cookie(cookie, se)
     update_user_online(user, se)
     teacher = se.get(_models.Teacher, user.id)
-    teacher.specializations
+
+
+async def _drop_user(
+        cookie: str,
+        se: _orm.Session
+):
+    user = await _cookies.check_user_cookie(cookie, se)
+    se.delete(user)
+    se.commit()
+
+
+async def drop_student(
+        cookie: str,
+        se: _orm.Session
+):
+    return await _drop_user(cookie, se)
+
+
+async def update_student(
+    data: _schemas.StudentUpdate,
+    model: _models.User,
+    se: _orm.Session
+):
+    if data.email:
+        model.email = data.email
+        se.commit()
+        se.refresh(model)
+    if data.fname:
+        model.fname = data.fname
+        se.commit()
+        se.refresh(model)
+    if data.sname:
+        model.sname = data.sname
+        se.commit()
+        se.refresh(model)
+    if data.lname:
+        model.lname = data.lname
+        se.commit()
+        se.refresh(model)
+    if data.password:
+        model.password = _hash.bcrypt.hash(data.password + PASSWORD_SALT)
+        se.commit()
+        se.refresh(model)

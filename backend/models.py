@@ -42,6 +42,9 @@ class User(_db.Base):
     notifications: _orm.Mapped[_typing.List["Notification"]] = \
         _orm.relationship(back_populates="user")
 
+    teacher: _orm.Mapped["Teacher"] = \
+        _orm.relationship(back_populates="user")
+
 
 class UserActivities(_db.Base):
 
@@ -107,6 +110,9 @@ class Teacher(_db.Base):
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True, index=True)
     company_name = _sql.Column(_sql.String, _sql.ForeignKey("company.name"), index=True)
     bio = _sql.Column(_sql.String, nullable=True, index=False)
+
+    user: _orm.Mapped["User"] = \
+        _orm.relationship(back_populates="teacher")
 
     company: _orm.Mapped["Company"] = \
         _orm.relationship(back_populates="teachers")
@@ -338,7 +344,7 @@ class Admin(_db.Base):
     __tablename__ = "admin"
 
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
-    login = _sql.Column(_sql.String, primary_key=True, index=True)
+    login = _sql.Column(_sql.String, unique=True, index=True)
     password = _sql.Column(_sql.String, nullable=False)
     sign = _sql.Column(_sql.String)
 

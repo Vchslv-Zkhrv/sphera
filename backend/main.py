@@ -73,7 +73,7 @@ async def delete_student_account(
         return _cookies.get_unsign_response()
 
 
-@fastapi.put("/api/stidents/me", status_code=204)
+@fastapi.put("/api/students/me", status_code=204)
 async def update_student_data(
     data: _schemas.StudentUpdate,
     user: usertype = None,
@@ -88,3 +88,49 @@ async def update_student_data(
 
     await _services.update_student(data, model, session)
     return await _cookies.get_signed_response(None, model, session, 204)
+
+
+@fastapi.get("/api/admin", response_model=_schemas.Admin)
+async def admin_sign_in(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    if not user:
+        raise _fastapi.HTTPException(401, "no user")
+    try:
+        model = await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    schema = _schemas.Admin.from_orm(model)
+    return await _cookies.get_signed_response(
+        schema,
+        model,
+        session,
+        path="/api/admin"
+    )
+
+
+@fastapi.post("/api/admin", response_model=_schemas.Admin)
+async def admin_auth(
+        data: _schemas.AuthSchema,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    try:
+        model = await _services.auth_admin(data.login, data.password, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    schema = _schemas.Admin.from_orm(model)
+    return await _cookies.get_signed_response(
+        schema,
+        model,
+        session,
+        path="/api/admin"
+    )
+
+
+@fastapi.delete("/api/admin", status_code=401)
+async def admin_log_out(
+    user: usertype = None,
+):
+    return _cookies.get_unsign_response(path="/api/admin")

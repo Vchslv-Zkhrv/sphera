@@ -83,7 +83,8 @@ async def get_signed_response(
         data: _typing.Optional[_BM],
         model: _models.signable,
         se: _orm.Session,
-        status: int = 200
+        status: int = 200,
+        path: str = "/"
 ):
 
     """
@@ -92,12 +93,12 @@ async def get_signed_response(
 
     resp = _fastapi.Response(data.json() if data else None, media_type="application/json")
     cookie = await genetate_cookie(model, se)
-    resp.set_cookie("user", cookie, httponly=True)
+    resp.set_cookie("user", cookie, httponly=True, path=path)
     resp.status_code = status
     return resp
 
 
-def get_unsign_response(status: int = 401):
+def get_unsign_response(status: int = 401, path: str = "/"):
     resp = _fastapi.Response(status_code=status)
-    resp.delete_cookie("user")
+    resp.delete_cookie("user", path=path)
     return resp

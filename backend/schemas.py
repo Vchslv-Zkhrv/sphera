@@ -79,6 +79,20 @@ class TeacherCreate(_Base):
     passowrd: str
 
 
+class TeacherUpdate(_Base):
+
+    confirmation_password: str
+    confirmation_email: str
+    password: _typing.Optional[str]
+    email: _typing.Optional[str]
+    fname: _typing.Optional[str]
+    lname: _typing.Optional[str]
+    sname: _typing.Optional[str]
+    company:  _typing.Optional[int]
+    specializations: _typing.Optional[_typing.List[str]]
+    bio: _typing.Optional[str]
+
+
 class StudentShort(_Base):
 
     id: int

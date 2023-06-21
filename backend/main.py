@@ -2,12 +2,12 @@ import typing as _typing
 
 import fastapi as _fastapi
 from sqlalchemy import orm as _orm
+import sqlalchemy as _sql
 from loguru import logger
 
 import cookies as _cookies
 import services as _services
 import schemas as _schemas
-import models as _models
 
 
 fastapi = _fastapi.FastAPI()
@@ -15,6 +15,11 @@ fastapi = _fastapi.FastAPI()
 usertype = _typing.Annotated[_typing.Union[str, None], _fastapi.Cookie()]
 
 logger.add("./logs/debug.log")
+
+
+@fastapi.head("/api/", status_code=204)
+async def handshake():
+    pass
 
 
 @fastapi.post("/app/students", status_code=204)
@@ -27,7 +32,7 @@ async def student_sign_up(
     return await _cookies.get_signed_response(None, stud, session, 204)
 
 
-@fastapi.get("/app/students/me/cookie", response_model=_schemas.Student)
+@fastapi.get("/app/students/me", response_model=_schemas.Student)
 async def student_cookie_sign_in(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -96,6 +101,7 @@ async def admin_sign_in(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
+    logger.debug("")
     if not user:
         raise _fastapi.HTTPException(401, "no user")
     try:
@@ -131,6 +137,7 @@ async def admin_auth(
 async def admin_log_out(
     user: usertype = None,
 ):
+    logger.debug("")
     return _cookies.get_unsign_response()
 
 
@@ -139,6 +146,7 @@ async def load_tags(
     tags: _typing.List[str],
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
+    logger.debug("")
     await _services.create_specializations(tags, session)
 
 
@@ -147,6 +155,7 @@ async def find_tags(
     pattern: str,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
+    logger.debug("")
     return list(
         _schemas.Specialization.from_orm(s)
         for s in
@@ -160,7 +169,7 @@ async def regist_company(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-
+    logger.debug("")
     if not user:
         raise _fastapi.HTTPException(401, "no cookie")
 
@@ -180,4 +189,31 @@ async def get_company_public_data(
     id: int,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
+    logger.debug("")
     return await _services.get_company(id, session)
+
+
+@fastapi.post("/app/teachers", status_code=204)
+async def teacher_sign_in(
+    data: _schemas.TeacherCreate,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    usr, _ = await _services.create_teacher(data, session)
+    return await _cookies.get_signed_response(None, usr, session, 204)
+
+
+@fastapi.get("/app/teachers/me", response_model=_schemas.Teacher)
+async def teacher_cookie_sign_in(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    if not user:
+        raise _fastapi.HTTPException(401, "Нет cookie")
+    try:
+        usr, teacher = await _services.get_teacher_account(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    data = _services.teacher_model_to_schema(usr, teacher)
+    return await _cookies.get_signed_response(data, usr, session)

@@ -167,8 +167,15 @@ async def create_teacher(
     se.commit()
     se.refresh(teacher)
 
-    teacher.specializations = specializations
-    se.commit()
+    for s in specializations:
+        se.add(
+            _models.TeacherSpecializations(
+                user_id=teacher.user_id,
+                specialization_id=s.id
+            )
+        )
+        se.commit()
+
     return (user, teacher)
 
 
@@ -358,4 +365,22 @@ async def get_company(
         name=model.name,
         teachers=model.teachers,
         tags=list(s.specialization.name for s in model.specializations)
+    )
+
+
+def teacher_model_to_schema(
+        user: _models.User,
+        teacher: _models.Teacher
+):
+    return _schemas.Teacher(
+        id=user.id,
+        email=user.email,
+        fname=user.fname,
+        lname=user.lname,
+        sname=user.sname,
+        date_online=user.date_online,
+        company=teacher.company.name,
+        specializations=list(
+            s.specialization.name for s in teacher.specializations
+        )
     )

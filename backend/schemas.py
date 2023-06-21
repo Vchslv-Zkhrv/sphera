@@ -76,7 +76,7 @@ class TeacherCreate(_Base):
     company: int
     specializations: _typing.List[str]
     bio: _typing.Optional[str] = _Field(default="")
-    passowrd: str
+    password: str
 
 
 class TeacherUpdate(_Base):

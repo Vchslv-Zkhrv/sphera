@@ -4,3 +4,5 @@ backend/data
 backend/__pycache__
 backend/config.py
 backend/logs
+frontend/node_modules
+frontend/package-lock.json

@@ -7,6 +7,7 @@ from loguru import logger
 import cookies as _cookies
 import services as _services
 import schemas as _schemas
+import models as _models
 
 
 fastapi = _fastapi.FastAPI()
@@ -106,7 +107,6 @@ async def admin_sign_in(
         schema,
         model,
         session,
-        path="/api/admin"
     )
 
 
@@ -124,8 +124,6 @@ async def admin_auth(
     return await _cookies.get_signed_response(
         schema,
         model,
-        session,
-        path="/api/admin"
     )
 
 
@@ -133,4 +131,53 @@ async def admin_auth(
 async def admin_log_out(
     user: usertype = None,
 ):
-    return _cookies.get_unsign_response(path="/api/admin")
+    return _cookies.get_unsign_response()
+
+
+@fastapi.post("/api/tags",  status_code=204)
+async def load_tags(
+    tags: _typing.List[str],
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.create_specializations(tags, session)
+
+
+@fastapi.get("/api/tags", response_model=_typing.List[_schemas.Specialization])
+async def find_tags(
+    pattern: str,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    return list(
+        _schemas.Specialization.from_orm(s)
+        for s in
+        await _services.find_specializations(pattern, session)
+    )
+
+
+@fastapi.post("/api/companies", status_code=204)
+async def regist_company(
+    data: _schemas.CompanyCreate,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+
+    if not user:
+        raise _fastapi.HTTPException(401, "no cookie")
+
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        try:
+            await _cookies.check_user_cookie(user, session)
+        except _cookies.CookieError:
+            return _cookies.get_unsign_response("/api/admin")
+
+    await _services.create_company(data, session)
+
+
+@fastapi.get("/api/compamies/{id}", response_model=_schemas.Company)
+async def get_company_public_data(
+    id: int,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    return await _services.get_company(id, session)

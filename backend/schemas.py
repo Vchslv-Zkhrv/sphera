@@ -126,6 +126,8 @@ class Company(_Base):
 
     id: int
     name: str
+    teachers: _typing.List[Teacher]
+    tags: _typing.List[str]
 
 
 class Specialization(_Base):
@@ -137,7 +139,7 @@ class Specialization(_Base):
 class CompanyCreate(_Base):
 
     name: str
-    specializations: _typing.List[str]
+    tags: _typing.List[str]
 
 
 class Course(_Base):

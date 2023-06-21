@@ -1,6 +1,9 @@
+import typing as _typing
+
 import fastapi as _fastapi
 import datetime as _dt
 import sqlalchemy.orm as _orm
+from sqlalchemy import func as _func
 import passlib.hash as _hash
 
 import database as _database
@@ -288,3 +291,71 @@ async def drop_admin(
     admin = await _cookies.check_admin_cookie(cookie, se)
     se.delete(admin)
     se.commit()
+
+
+async def create_specializations(
+        names: _typing.List[str],
+        se: _orm.Session
+):
+    for name in names:
+        if se.query(_models.Specialization).filter_by(name=name).first():
+            continue
+        spec = _models.Specialization(name=name)
+        se.add(spec)
+        se.commit()
+
+
+async def find_specializations(
+        pattern: str,
+        se: _orm.Session
+):
+
+    return (
+        se
+        .query(_models.Specialization)
+        .filter(_func.lower(_models.Specialization.name).like(f"%{pattern}%"))
+        .all()
+    )
+
+
+async def create_company(
+        data: _schemas.CompanyCreate,
+        se: _orm.Session
+):
+    comp = _models.Company(name=data.name)
+    se.add(comp)
+    se.commit()
+    se.refresh(comp)
+    specs = list(
+        se
+        .query(_models.Specialization)
+        .filter_by(name=s)
+        .first()
+        for s in
+        data.tags
+    )
+    specs = list(
+        _models.CompanySpecializations(
+            company_id=comp.id,
+            specialization_id=s.id
+        )
+        for s in specs
+    )
+    for s in specs:
+        se.add(s)
+        se.commit()
+
+
+async def get_company(
+        id: int,
+        se: _orm.Session
+):
+    model = se.get(_models.Company, id)
+    if not model:
+        raise _fastapi.HTTPException(404, "no such company")
+    return _schemas.Company(
+        id=id,
+        name=model.name,
+        teachers=model.teachers,
+        tags=list(s.specialization.name for s in model.specializations)
+    )

@@ -11,6 +11,12 @@ import models as _models
 import database as _database
 
 
+"""
+Модуль для работы с cookie
+
+"""
+
+
 class CookieError(Exception):
     pass
 

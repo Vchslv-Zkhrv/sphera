@@ -13,6 +13,12 @@ from config import PASSWORD_SALT
 import cookies as _cookies
 
 
+"""
+Работа с базой данных
+
+"""
+
+
 def use_definition():
     return _database.Base.metadata.create_all(bind=_database.engine)
 

@@ -3,6 +3,12 @@ import sqlalchemy.ext.declarative as _declarative
 import sqlalchemy.orm as _orm
 
 
+"""
+Создает классы для работы с базой данных
+
+"""
+
+
 DATABASE_URL = "sqlite:///./data/database.db"
 
 engine = _sql.create_engine(

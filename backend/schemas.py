@@ -4,6 +4,12 @@ import datetime as _dt
 from pydantic import BaseModel as _BM, Field as _Field
 
 
+"""
+pydantic - структуры, используемые в приложении
+
+"""
+
+
 users_roles = _typing.Literal["student", "teacher"]
 mark_values = _typing.Literal[None, 2, 3, 4, 5]
 link_actions = _typing.Literal[
@@ -17,6 +23,15 @@ class _Base(_BM):
     class Config:
         orm_mode = True
         arbitrary_types_allowed = True
+
+
+#
+#
+#
+#   структуры, связанные с базой данных
+#
+#
+#
 
 
 class _User(_Base):
@@ -140,6 +155,13 @@ class CompanyCreate(_Base):
 
     name: str
     tags: _typing.List[str]
+
+
+class CompanyUpdate(_Base):
+
+    id: int
+    name: _typing.Optional[str]
+    tags: _typing.Optional[_typing.List[str]]
 
 
 class Course(_Base):
@@ -330,3 +352,50 @@ class AuthSchema(_Base):
 
     login: str
     password: str
+
+
+#
+#
+#
+#  структуры заявок
+#
+#
+#
+
+
+class _ApplicationBase(_Base):
+
+    applicant_email: str
+    reason: _typing.Optional[str]
+
+
+class _TagApplicationBase(_ApplicationBase):
+
+    name: str
+
+
+class CreateTagApplication(_TagApplicationBase):
+    pass
+
+
+class DeleteTagApplication(_TagApplicationBase):
+    pass
+
+
+class UpdateTagApplication(_TagApplicationBase):
+
+    new_name: str
+
+
+class CreateCompanyApplication(CompanyCreate, _ApplicationBase):
+    pass
+
+
+class DeleteCompanyApplication(_ApplicationBase):
+
+    company_id: str
+    reason: str
+
+
+class UpdateCompanyApplication(CompanyUpdate, _ApplicationBase):
+    pass

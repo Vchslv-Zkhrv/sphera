@@ -4,7 +4,13 @@ import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 
 import database as _db
- 
+
+
+"""
+Определение базы данных
+
+"""
+
 
 class User(_db.Base):
 
@@ -348,6 +354,7 @@ class Admin(_db.Base):
     login = _sql.Column(_sql.String, unique=True, index=True)
     password = _sql.Column(_sql.String, nullable=False)
     sign = _sql.Column(_sql.String)
+    telegram = _sql.Column(_sql.Integer, nullable=True, index=True)
 
 
 class Link(_db.Base):

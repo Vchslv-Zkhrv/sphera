@@ -10,6 +10,12 @@ import services as _services
 import schemas as _schemas
 
 
+"""
+Точка входа в приложение. Принимает HTTP-запросы и отдает HTTP-ответы
+
+"""
+
+
 fastapi = _fastapi.FastAPI()
 
 usertype = _typing.Annotated[_typing.Union[str, None], _fastapi.Cookie()]

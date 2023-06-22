@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@100;200;300;400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            color: rgb(30, 30, 30)
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            max-width: 600px;
+            background-color: white;
+        }
+        h1 {
+            font-family: "Montserrat", sans-serif;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        h3 {
+            font-family: "Montserrat", sans-serif;
+            font-weight: 500;
+            margin-bottom: 4px;
+            margin-top: 24px;
+            font-size: 18px;
+            color: rgb(100, 100, 100)
+        }
+        img {
+            height: 60px;
+        }
+        #wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            justify-content: center;
+            gap: 36px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 24px
+        }
+        #text {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            height: fit-content;
+        }
+        p {
+            font-family: "Montserrat", sans-serif;
+            font-weight: 300;
+        }
+        a {
+            color: #00C89C;
+            font-family: "Montserrat", sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        a:hover {
+            color: #00929C
+        }
+        #reason {
+            color: rgb(100, 100, 100)
+        }
+        @media screen and (max-width: 400px) {
+            * {
+                max-width: 300px !important;
+            }
+        }
+    </style>
+    <!-- Заявка принята -->
+</head>
+<body>
+    <main>
+        <div id="wrapper"">
+            <img src="../media/logo.png"/>
+            <section id="text">
+                <h1>Заявка !ID! принята на рассмотрение</h1>
+                <p>Мы получили вашу заявку на регистрацию учебного заведения и сообщим вам о нашем решении в течении суток</p>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

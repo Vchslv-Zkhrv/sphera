@@ -20,6 +20,7 @@ class User(_db.Base):
     date_created = _sql.Column(_sql.DateTime)
     date_online = _sql.Column(_sql.DateTime)
     sign = _sql.Column(_sql.String, nullable=False)
+    telegram = _sql.Column(_sql.Integer, nullable=True)
 
     groups: _orm.Mapped[_typing.List["GroupStudents"]] = \
         _orm.relationship(back_populates="student")

@@ -406,3 +406,61 @@ async def get_all_teachers(se: _orm.Session):
         for teacher in
         se.query(_models.Teacher)
     )
+
+
+async def get_student_by_id(
+        id: int,
+        se: _orm.Session
+):
+    model = se.query(_models.User).filter_by(id=id).filter_by(role="student").first()
+    if not model:
+        raise _fastapi.HTTPException(404, "No such user")
+    return _schemas.StudentFull(
+        id=model.id,
+        email=model.email,
+        fname=model.fname,
+        lname=model.lname,
+        sname=model.sname,
+        date_online=model.date_online,
+        activities=list(a.date for a in model.activities)
+    )
+
+
+async def drop_student_by_id(
+        id: int,
+        se: _orm.Session
+):
+    user = se.query(_models.User).filter_by(id=id).filter_by(role="student").first()
+    if not user:
+        raise _fastapi.HTTPException(404, "No such user")
+    se.delete(user)
+    se.commit()
+
+
+async def get_teacher_by_id(
+        id: int,
+        se: _orm.Session
+):
+    teacher = se.get(_models.Teacher, id)
+    if not teacher:
+        raise _fastapi.HTTPException(404, "No such teacher")
+    return _schemas.TeacherFull(
+        id=teacher.user.id,
+        email=teacher.user.email,
+        fname=teacher.user.fname,
+        lname=teacher.user.lname,
+        sname=teacher.user.sname,
+        date_online=teacher.user.date_online,
+        company=teacher.company.name,
+        specializations=list(s.specialization.name for s in teacher.specializations),
+        activities=list(a.date for a in teacher.user.activities)
+    )
+
+
+async def drop_teacher_by_id(
+        id: int,
+        se: _orm.Session
+):
+    teacher = se.get(_models.Teacher, id)
+    se.delete(teacher)
+    se.commit()

@@ -111,7 +111,7 @@ class TeacherShort(_Base):
 
 class _UserFull(_Base):
 
-    activities: _typing.List[int]
+    activities: _typing.List[_dt.datetime]
 
 
 class StudentFull(Student, _UserFull):

@@ -43,7 +43,7 @@ class User(_db.Base):
         _orm.relationship(back_populates="user")
 
     teacher: _orm.Mapped["Teacher"] = \
-        _orm.relationship(back_populates="user")
+        _orm.relationship(back_populates="user", cascade="delete")
 
 
 class UserActivities(_db.Base):
@@ -55,7 +55,7 @@ class UserActivities(_db.Base):
     date = _sql.Column(_sql.DateTime)
 
     user: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="activities")
+        _orm.relationship(back_populates="activities", cascade="delete")
 
 
 class Company(_db.Base):
@@ -97,10 +97,10 @@ class CompanySpecializations(_db.Base):
     specialization_id = _sql.Column(_sql.Integer, _sql.ForeignKey("specialization.id"), primary_key=True)
 
     company: _orm.Mapped["Company"] = \
-        _orm.relationship(back_populates="specializations")
+        _orm.relationship(back_populates="specializations", cascade="delete")
 
     specialization: _orm.Mapped["Specialization"] = \
-        _orm.relationship(back_populates="companies")
+        _orm.relationship(back_populates="companies", cascade="delete")
 
 
 class Teacher(_db.Base):
@@ -112,7 +112,7 @@ class Teacher(_db.Base):
     bio = _sql.Column(_sql.String, nullable=True, index=False)
 
     user: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="teacher")
+        _orm.relationship(back_populates="teacher", cascade="delete")
 
     company: _orm.Mapped["Company"] = \
         _orm.relationship(back_populates="teachers")
@@ -132,10 +132,10 @@ class TeacherSpecializations(_db.Base):
     specialization_id = _sql.Column(_sql.Integer, _sql.ForeignKey("specialization.id"), primary_key=True)
 
     teacher: _orm.Mapped["Teacher"] = \
-        _orm.relationship(back_populates="specializations")
+        _orm.relationship(back_populates="specializations", cascade="delete")
 
-    specialization: _orm.Mapped[_typing.List["Specialization"]] = \
-        _orm.relationship(back_populates="teachers")
+    specialization: _orm.Mapped["Specialization"] = \
+        _orm.relationship(back_populates="teachers", cascade="delete")
 
 
 class Course(_db.Base):
@@ -171,10 +171,10 @@ class CourseTags(_db.Base):
     specialization_id = _sql.Column(_sql.Integer, _sql.ForeignKey("specialization.id"), primary_key=True)
 
     course: _orm.Mapped["Course"] = \
-        _orm.relationship(back_populates="tags")
+        _orm.relationship(back_populates="tags", cascade="delete")
 
     specialization: _orm.Mapped["Specialization"] = \
-        _orm.relationship(back_populates="courses")
+        _orm.relationship(back_populates="courses", cascade="delete")
 
 
 class Lesson(_db.Base):
@@ -189,7 +189,7 @@ class Lesson(_db.Base):
     duration = _sql.Column(_sql.Time, nullable=False)
 
     course: _orm.Mapped["Course"] = \
-        _orm.relationship(back_populates="lessons")
+        _orm.relationship(back_populates="lessons", cascade="delete")
 
 
 class Group(_db.Base):
@@ -218,10 +218,10 @@ class GroupStudents(_db.Base):
     group_id = _sql.Column(_sql.Integer, _sql.ForeignKey("group.id"), primary_key=True)
 
     student: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="groups")
+        _orm.relationship(back_populates="groups", cascade="delete")
 
     group: _orm.Mapped["Group"] = \
-        _orm.relationship(back_populates="students")
+        _orm.relationship(back_populates="students", cascade="delete")
 
 
 class Session(_db.Base):
@@ -238,10 +238,10 @@ class Session(_db.Base):
         _orm.relationship(back_populates="sessions")
 
     group: _orm.Mapped["GroupSessions"] = \
-        _orm.relationship(back_populates="session")
+        _orm.relationship(back_populates="session", cascade="delete")
 
     user: _orm.Mapped["IndividualSessions"] = \
-        _orm.relationship(back_populates="session")
+        _orm.relationship(back_populates="session", cascade="delete")
 
     hometasks: _orm.Mapped[_typing.List["Hometask"]] = \
         _orm.relationship(back_populates="session")
@@ -255,10 +255,10 @@ class GroupSessions(_db.Base):
     group_id = _sql.Column(_sql.Integer,  _sql.ForeignKey("group.id"), primary_key=True)
 
     session: _orm.Mapped["Session"] = \
-        _orm.relationship(back_populates="group")
+        _orm.relationship(back_populates="group", cascade="delete")
 
     group: _orm.Mapped["Group"] = \
-        _orm.relationship("Group", back_populates="sessions")
+        _orm.relationship("Group", back_populates="sessions", cascade="delete")
 
 
 class IndividualSessions(_db.Base):
@@ -269,10 +269,10 @@ class IndividualSessions(_db.Base):
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True)
 
     session: _orm.Mapped["Session"] = \
-        _orm.relationship(back_populates="user")
+        _orm.relationship(back_populates="user", cascade="delete")
 
     user: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="sessions")
+        _orm.relationship(back_populates="sessions", cascade="delete")
 
 
 class Hometask(_db.Base):
@@ -289,7 +289,7 @@ class Hometask(_db.Base):
     mark = _sql.Column(_sql.DateTime)
 
     session: _orm.Mapped["Session"] = \
-        _orm.relationship(back_populates="hometasks")
+        _orm.relationship(back_populates="hometasks", cascade="delete")
 
     student: _orm.Mapped["User"] = \
         _orm.relationship(back_populates="hometasks")
@@ -306,10 +306,10 @@ class Progress(_db.Base):
     step = _sql.Column(_sql.Integer, nullable=False)
 
     student: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="progresses")
+        _orm.relationship(back_populates="progresses", cascade="delete")
 
     course: _orm.Mapped["Course"] = \
-        _orm.relationship(back_populates="progresses")
+        _orm.relationship(back_populates="progresses", cascade="delete")
 
 
 class Chat(_db.Base):
@@ -333,10 +333,10 @@ class ChatMembers(_db.Base):
     admin = _sql.Column(_sql.Boolean)
 
     chat: _orm.Mapped["Chat"] = \
-        _orm.relationship(back_populates="members")
+        _orm.relationship(back_populates="members", cascade="delete")
 
     member: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="chats")
+        _orm.relationship(back_populates="chats", cascade="delete")
 
 
 class Admin(_db.Base):
@@ -373,7 +373,7 @@ class Notification(_db.Base):
     url = _sql.Column(_sql.String, nullable=True)
 
     user: _orm.Mapped["User"] = \
-        _orm.relationship(back_populates="notifications")
+        _orm.relationship(back_populates="notifications", cascade="delete")
 
 
 signable = _typing.Union[Admin, User]

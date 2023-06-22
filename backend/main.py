@@ -207,7 +207,7 @@ async def teacher_cookie_sign_in(
     return await _cookies.get_signed_response(data, usr, session)
 
 
-@fastapi.get("/api/students/all", response_model=_typing.List[_schemas.StudentShort])
+@fastapi.get("/api/admin/students/all", response_model=_typing.List[_schemas.StudentShort])
 async def get_all_students(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -222,7 +222,7 @@ async def get_all_students(
     return await _services.get_all_students(session)
 
 
-@fastapi.get("/api/teachers/all", response_model=_typing.List[_schemas.TeacherShort])
+@fastapi.get("/api/admin/teachers/all", response_model=_typing.List[_schemas.TeacherShort])
 async def get_all_teachers(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -235,3 +235,63 @@ async def get_all_teachers(
     except _cookies.CookieError:
         return _cookies.get_unsign_response()
     return await _services.get_all_teachers(session)
+
+
+@fastapi.delete("/api/admin/students/{id}", status_code=204)
+async def delete_student_by_admin(
+    id: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    await _services.drop_student_by_id(id, session)
+
+
+@fastapi.delete("/api/admin/teachers/{id}", status_code=204)
+async def delete_teachers_by_admin(
+    id: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    model = await _services.get_student_by_id(id, session)
+    if not model:
+        raise _fastapi.HTTPException(404, "No such user")
+    session.delete(model)
+    session.commit()
+
+
+@fastapi.get("/api/admin/teachers/{id}", response_model=_schemas.TeacherFull)
+async def get_teacher_by_admin(
+    id: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _services.get_teacher_by_id(id, session)
+
+
+@fastapi.get("/api/admin/student/{id}", response_model=_schemas.StudentFull)
+async def get_student_by_admin(
+    id: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _services.get_student_by_id(id, session)

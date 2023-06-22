@@ -287,7 +287,7 @@ async def auth_admin(
     if not admin:
         raise _fastapi.HTTPException(404, "No such admin")
     if not _hash.bcrypt.verify(password+PASSWORD_SALT, admin.password):
-        raise _fastapi.HTTPException(401, "Invalid credentials")
+        raise _cookies.CookieError
     return admin
 
 
@@ -383,4 +383,26 @@ def teacher_model_to_schema(
         specializations=list(
             s.specialization.name for s in teacher.specializations
         )
+    )
+
+
+async def get_all_students(se: _orm.Session):
+    return list(
+        _schemas.StudentShort.from_orm(s)
+        for s in
+        se.query(_models.User).filter_by(role="student")
+    )
+
+
+async def get_all_teachers(se: _orm.Session):
+    return list(
+        _schemas.TeacherShort(
+            id=teacher.user_id,
+            fname=teacher.user.fname,
+            lname=teacher.user.lname,
+            sname=teacher.user.sname,
+            company=teacher.company_name
+        )
+        for teacher in
+        se.query(_models.Teacher)
     )

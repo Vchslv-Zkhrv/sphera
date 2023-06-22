@@ -127,16 +127,11 @@ async def admin_auth(
     except _cookies.CookieError:
         return _cookies.get_unsign_response()
     schema = _schemas.Admin.from_orm(model)
-    return await _cookies.get_signed_response(
-        schema,
-        model,
-    )
+    return await _cookies.get_signed_response(schema, model, session)
 
 
 @fastapi.delete("/api/admin", status_code=401)
-async def admin_log_out(
-    user: usertype = None,
-):
+async def admin_log_out():
     logger.debug("")
     return _cookies.get_unsign_response()
 
@@ -170,17 +165,10 @@ async def regist_company(
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
-    if not user:
-        raise _fastapi.HTTPException(401, "no cookie")
-
     try:
         await _cookies.check_admin_cookie(user, session)
     except _cookies.CookieError:
-        try:
-            await _cookies.check_user_cookie(user, session)
-        except _cookies.CookieError:
-            return _cookies.get_unsign_response("/api/admin")
-
+        return _cookies.get_unsign_response("/api/admin")
     await _services.create_company(data, session)
 
 
@@ -217,3 +205,33 @@ async def teacher_cookie_sign_in(
         return _cookies.get_unsign_response()
     data = _services.teacher_model_to_schema(usr, teacher)
     return await _cookies.get_signed_response(data, usr, session)
+
+
+@fastapi.get("/api/students/all", response_model=_typing.List[_schemas.StudentShort])
+async def get_all_students(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    if not user:
+        raise _fastapi.HTTPException(401, "Нет cookie")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _services.get_all_students(session)
+
+
+@fastapi.get("/api/teachers/all", response_model=_typing.List[_schemas.TeacherShort])
+async def get_all_teachers(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    if not user:
+        raise _fastapi.HTTPException(401, "Нет cookie")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _services.get_all_teachers(session)

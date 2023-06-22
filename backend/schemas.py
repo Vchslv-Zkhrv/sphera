@@ -106,7 +106,7 @@ class TeacherShort(_Base):
     fname: str
     lname: str
     sname: _typing.Optional[str] = _Field(default="")
-    company: int
+    company: str
 
 
 class _UserFull(_Base):

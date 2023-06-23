@@ -79,6 +79,8 @@ async def auth_student(
         raise _fastapi.HTTPException(404, "No such user")
     if not _hash.bcrypt.hash(password + PASSWORD_SALT):
         raise _fastapi.HTTPException(401, "invalid password")
+    if not user.confirmed:
+        raise _fastapi.HTTPException(409, "email not verified")
     return user
 
 
@@ -192,6 +194,8 @@ def get_teacher(
     teacher = se.get(_models.Teacher, user_id)
     if not teacher:
         raise _fastapi.HTTPException(400, "User is not a teacher")
+    if not teacher.user.confirmed:
+        raise _fastapi.HTTPException(409, "email is not verified")
     else:
         return teacher
 

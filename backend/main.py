@@ -1,13 +1,15 @@
+import os as _os
 import typing as _typing
 
 import fastapi as _fastapi
 from sqlalchemy import orm as _orm
-import sqlalchemy as _sql
 from loguru import logger
 
 import cookies as _cookies
 import services as _services
 import schemas as _schemas
+from emails import emails as _emails
+import links as _links
 
 
 """
@@ -34,12 +36,13 @@ async def student_sign_up(
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
-    stud = await _services.create_student(data, session)
-    return await _cookies.get_signed_response(None, stud, session, 204)
+    user = await _services.create_student(data, session)
+    link = await _links.create_verify_email_link(user, session)
+    await _emails.send_verification_email(link, user)
 
 
 @fastapi.get("/app/students/me", response_model=_schemas.Student)
-async def student_cookie_sign_in(
+async def student_sign_in(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
@@ -55,7 +58,7 @@ async def student_cookie_sign_in(
 
 
 @fastapi.post("/api/students/me", response_model=_schemas.Student)
-async def student_sign_in(
+async def student_auth(
     data: _schemas.AuthSchema,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
@@ -188,17 +191,17 @@ async def get_company_public_data(
 
 
 @fastapi.post("/app/teachers", status_code=204)
-async def teacher_sign_in(
+async def teacher_sign_up(
     data: _schemas.TeacherCreate,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
     usr, _ = await _services.create_teacher(data, session)
-    return await _cookies.get_signed_response(None, usr, session, 204)
+    await _cookies.get_signed_response(None, usr, session, 204)
 
 
 @fastapi.get("/app/teachers/me", response_model=_schemas.Teacher)
-async def teacher_cookie_sign_in(
+async def teacher_sign_in(
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
@@ -301,3 +304,17 @@ async def get_student_by_admin(
     except _cookies.CookieError:
         return _cookies.get_unsign_response()
     return await _services.get_student_by_id(id, session)
+
+
+@fastapi.get("/api/verification/{url}", status_code=200)
+async def email_verification(
+    url: str,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _links.verify_email(url, session)
+    return await _emails.get_verify_email_success_page()
+
+
+@fastapi.get("/api/images/email/")
+async def get_logo_for_email():
+    return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/logo.png")

@@ -14,7 +14,8 @@ users_roles = _typing.Literal["student", "teacher"]
 mark_values = _typing.Literal[None, 2, 3, 4, 5]
 link_actions = _typing.Literal[
     "join chat",
-    "join group"
+    "join group",
+    "verify email"
 ]
 
 
@@ -28,7 +29,7 @@ class _Base(_BM):
 #
 #
 #
-#   структуры, связанные с базой данных
+# структуры, связанные с базой данных
 #
 #
 #
@@ -53,7 +54,6 @@ class StudentUpdate(_Base):
     confirmation_password: str
     confirmation_email: str
     password: _typing.Optional[str]
-    email: _typing.Optional[str]
     fname: _typing.Optional[str]
     lname: _typing.Optional[str]
     sname: _typing.Optional[str]

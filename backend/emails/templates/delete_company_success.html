@@ -1,79 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type " content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@100;200;300;400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            padding: 0;
-            margin: 0;
-        }
-        main {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            max-width: 600px;
-            background-color: white;
-        }
-        h1 {
-            font-family: "Montserrat", sans-serif;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-        img {
-            height: 60px;
-        }
-        #wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-            justify-content: center;
-            gap: 36px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.1);
-            border-radius: 12px;
-            padding: 24px
-        }
-        #text {
-            display: flex;
-            flex-direction: column;
-            justify-content: start;
-            height: fit-content;
-        }
-        p {
-            font-family: "Montserrat", sans-serif;
-            font-weight: 300;
-        }
-        a {
-            color: #00C89C;
-            font-family: "Montserrat", sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        a:hover {
-            color: #00929C
-        }
-        @media screen and (max-width: 400px) {
-            * {
-                max-width: 300px !important;
-            }
-        }
-    </style>
     <!-- Заявка одобрена -->
+    <title>Modern HTML Email Template</title>
 </head>
 <body>
-    <main>
-        <div id="wrapper"">
-            <img src="../media/logo.png"/>
-            <section id="text">
-                <h1>Ответ по заявке !ID!</h1>
-                <p>Завяка на удаление !COMPANY! была одобрена.</p>
-            </section>
-        </div>
-    </main>
+    <center style="max-width: 600px;">
+        <table style="
+                table-layout: fixed;
+                padding: 36px;
+                border-radius: 18px;
+                border: 2px solid #00C89C;
+                margin: 24px;
+                
+        ">
+            <tr>
+                <td>
+                    <img src="cid:logo" alt="logo" style="height: 60px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h1 style="
+                        font-family: 'Montserrat', sans-serif;
+                        margin-top: 36px;
+                        margin-bottom: 8px;
+                    ">
+                        Заявка одобрена
+                    </h1>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p style="
+                        color: rgb(30, 30, 30);
+                        font-family: 'Montserrat', sans-serif;
+                        font-weight: 400;
+                        font-size: 18px;
+                    ">
+                        Ваша заявка на удаление образовательной организации с сайта Проекта Сфера была одобрена.
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </center>
 </body>
 </html>

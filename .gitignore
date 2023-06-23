@@ -9,3 +9,5 @@ frontend/package-lock.json
 backend/emails/media
 backend/emails/__pycache__
 backend/applications/__pycache__
+backend/applications/tags
+backend/applications/companies

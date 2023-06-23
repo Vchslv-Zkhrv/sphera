@@ -20,13 +20,71 @@ import models as _models
 """
 
 
-async def get_verify_email_success_page():
+static_logos = _typing.Literal["logo.png", "alter-logo.png"]
+email_templates = _typing.Literal[
+    "verify_email",
+    "create_company_promice",
+    "create_company_reject",
+    "create_company_success",
+    "update_company_promice",
+    "update_company_reject",
+    "update_company_success",
+    "delete_company_promice",
+    "delete_company_reject",
+    "delete_company_success",
+    "create_tags_promice",
+    "create_tags_success",
+    "create_tags_reject",
+]
+static_templates = _typing.Literal[
+    "link_expired",
+    "link_invalid",
+    "link_overused",
+    "link_join_useless",
+    "verify_email_success",
+    "account_not_activated",
+    "internal_server_error"
+]
+
+
+async def get_static_page(
+        template_name: static_templates,
+        src: static_logos
+):
     async with _aiofiles.open(
-            f"{_os.getcwd()}/emails/templates/verify_email_success.html", "r", encoding="utf-8"
+            f"{_os.getcwd()}/emails/templates/{template_name}.html", "r", encoding="utf-8"
     ) as html:
         content = await html.read()
-        content = content.replace("!SRC!", f"{DOMAIN}/api/images/email/")
+        content = content.replace("!SRC!", f"{DOMAIN}/api/images/static/{src}")
         return _fastapi.responses.HTMLResponse(content=content)
+
+
+async def get_verify_email_success_page():
+    return await get_static_page("verify_email_success", "logo.png")
+
+
+async def get_link_expired_page():
+    return await get_static_page("link_expired", "alter-logo.png")
+
+
+async def get_link_overused_page():
+    return await get_static_page("link_overused", "alter-logo.png")
+
+
+async def get_link_join_useless_page():
+    return await get_static_page("link_join_useless", "alter-logo.png")
+
+
+async def get_link_invalid_page():
+    return await get_static_page("link_invalid", "alter-logo.png")
+
+
+async def get_account_not_activated_page():
+    return await get_static_page("account_not_activated", "alter-logo.png")
+
+
+async def get_link_500_error_page():
+    return await get_static_page("internal_server_error", "alter-logo.png")
 
 
 def send_message(

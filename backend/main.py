@@ -311,10 +311,27 @@ async def email_verification(
     url: str,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    await _links.verify_email(url, session)
-    return await _emails.get_verify_email_success_page()
+    logger.debug(f"new link: {url}")
+    try:
+        await _links.verify_email(url, session)
+    except _links.LinkInvalidError:
+        return await _emails.get_link_invalid_page()
+    except _links.LinkExpiredError:
+        return await _emails.get_link_expired_page()
+    except _links.LinkOverusedError:
+        return await _emails.get_link_overused_page()
+    except Exception as e:
+        logger.error(f"Failed to process verification link {url}: {e}")
+        return await _emails.get_link_500_error_page()
+    else:
+        return await _emails.get_verify_email_success_page()
 
 
 @fastapi.get("/api/images/email/")
 async def get_logo_for_email():
     return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/logo.png")
+
+
+@fastapi.get("/api/images/static/{name}")
+async def get_logo_for_static_page(name:_emails.static_logos):
+    return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/{name}")

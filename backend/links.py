@@ -14,6 +14,30 @@ import schemas as _schemas
 """
 
 
+class LinkError(Exception):
+    pass
+
+
+class LinkInvalidError(LinkError):
+    pass
+
+
+class LinkOverusedError(LinkError):
+    pass
+
+
+class LinkExpiredError(LinkError):
+    pass
+
+
+class LinkJoinUseless(LinkError):
+    pass
+
+
+class AccountNotActivatedError(LinkError):
+    pass
+
+
 async def create_verify_email_link(
         user: _models.User,
         se: _orm.Session
@@ -37,16 +61,16 @@ def get_link_by_url(
 ):
     link = se.query(_models.Link).filter_by(url=url).first()
     if not link:
-        raise _fastapi.HTTPException(400, "Неверная ссылка")
+        raise LinkInvalidError
     schema = _schemas.Link.from_orm(link)
     if link.limit <= link.count_used:
         se.delete(link)
         se.commit()
-        raise _fastapi.HTTPException(400, "Превышено ограничение на использование ссылки")
+        raise LinkOverusedError
     if schema.date_expired < _datetime.datetime.now():
         se.delete(link)
         se.commit()
-        raise _fastapi.HTTPException(400, "Ссылка устарела")
+        raise LinkExpiredError
     return link
 
 
@@ -57,7 +81,7 @@ async def verify_email(
     link = get_link_by_url(url, se)
     user = se.get(_models.User, link.target)
     if not user:
-        raise _fastapi.HTTPException(404, "No such user")
+        raise LinkInvalidError
     user.confirmed = True
     link.count_used += 1
     se.commit()

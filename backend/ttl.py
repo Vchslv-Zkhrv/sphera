@@ -3,10 +3,10 @@ import datetime as _dt
 
 from loguru import logger as _logger
 
-import services as _services
 import database as _database
 import models as _models
 import schemas as _schemas
+from config import UNVERIFIED_ACCOUNTS_TTL, TLL_CHECKS_FREQUENCY
 
 
 """
@@ -14,6 +14,7 @@ import schemas as _schemas
 Должен быть запущен в отдельном процессе
 
 """
+
 
 _logger.add("./logs/debug.log")
 
@@ -23,7 +24,7 @@ class TtlController():
     frequency: int
     timer: _threading.Timer
 
-    def __init__(self, frequency: int = 3600):
+    def __init__(self, frequency: int = TLL_CHECKS_FREQUENCY):
         self.frequency = frequency
         _logger.debug("TtlController started")
         self.set_timer()
@@ -50,7 +51,7 @@ class TtlController():
             now = _dt.datetime.now().timestamp()
             for user in se.query(_models.User).filter_by(confirmed=False):
                 schema = _schemas.SqlUser.from_orm(user)
-                if now - schema.date_created.timestamp() > 3600:
+                if now - schema.date_created.timestamp() > UNVERIFIED_ACCOUNTS_TTL:
                     se.delete(user)
                     se.commit()
                     _logger.debug(f"user {schema.id} deleted: mail not verified for a long time")

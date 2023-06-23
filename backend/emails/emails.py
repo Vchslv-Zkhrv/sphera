@@ -120,17 +120,22 @@ async def _attach_logo(message: _Message, logo: static_logos):
     return message
 
 
+def _get_message(to: str, subject: str):
+    message = _MIMEMultipart()
+    message["From"] = _LOGIN
+    message["To"] = to
+    message["Subject"] = subject
+    message["Bcc"] = _LOGIN
+    return message
+
+
 async def send_verification_email(
         link: _models.Link,
         user: _models.User
 ):
 
-    message = _MIMEMultipart()
-    message["From"] = _LOGIN
-    message["To"] = user.email
-    message["Subject"] = "Регистрация аккаунта на Проекте Сфера"
-    message["Bcc"] = _LOGIN
-    message = await _attach_logo(message, "logo.png")
+    message = _get_message(user.email, "Регистрация аккаунта на Проекте Сфера")
+    message = _attach_logo(message, "logo.png")
 
     async with _aiofiles.open(f"{_os.getcwd()}/emails/templates/verify_email.html", "r", encoding="utf-8") as file:
         html = await file.read()
@@ -143,12 +148,7 @@ async def send_verification_email(
 
 async def send_create_company_promise_email(to: str):
 
-    message = _MIMEMultipart()
-    message["From"] = _LOGIN
-    message["To"] = to
-    message["Subject"] = "Ответ по заявке на регистрацию учебного заведения"
-    message["Bcc"] = _LOGIN
-
+    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
     message = await _attach_logo(message, "logo.png")
 
     async with _aiofiles.open(
@@ -157,6 +157,43 @@ async def send_create_company_promise_email(to: str):
             encoding="utf-8"
     ) as file:
         payload = _MIMEText(await file.read(), "HTML", "UTF-8")
+        message.attach(payload)
+
+    await send_message(to, message.as_string())
+
+
+async def send_create_company_success_email(to: str, company: _models.Company):
+
+    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
+    message = await _attach_logo(message, "logo.png")
+
+    async with _aiofiles.open(
+            f"{_os.getcwd()}/emails/templates/create_company_success.html",
+            "r",
+            encoding="utf-8"
+    ) as file:
+        html = await file.read()
+        html = html.replace("!HREF!", f"{_DOMAIN}/api/companies/{company.id}")
+        html = html.replace("!COMPANY!", company.name)
+        payload = _MIMEText(html, "HTML", "UTF-8")
+        message.attach(payload)
+
+    await send_message(to, message.as_string())
+
+
+async def send_create_company_reject_email(to: str, reason: str):
+
+    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
+    message = await _attach_logo(message, "logo.png")
+
+    async with _aiofiles.open(
+            f"{_os.getcwd()}/emails/templates/create_company_reject.html",
+            "r",
+            encoding="utf-8"
+    ) as file:
+        html = await file.read()
+        html = html.replace("!REASON!", reason)
+        payload = _MIMEText(html, "HTML", "UTF-8")
         message.attach(payload)
 
     await send_message(to, message.as_string())

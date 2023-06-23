@@ -335,34 +335,6 @@ async def find_specializations(
     )
 
 
-async def create_company(
-        data: _schemas.CompanyCreate,
-        se: _orm.Session
-):
-    comp = _models.Company(name=data.name)
-    se.add(comp)
-    se.commit()
-    se.refresh(comp)
-    specs = list(
-        se
-        .query(_models.Specialization)
-        .filter_by(name=s)
-        .first()
-        for s in
-        data.tags
-    )
-    specs = list(
-        _models.CompanySpecializations(
-            company_id=comp.id,
-            specialization_id=s.id
-        )
-        for s in specs
-    )
-    for s in specs:
-        se.add(s)
-        se.commit()
-
-
 async def get_company(
         id: int,
         se: _orm.Session
@@ -374,7 +346,24 @@ async def get_company(
         id=id,
         name=model.name,
         teachers=model.teachers,
-        tags=list(s.specialization.name for s in model.specializations)
+        tags=list(s.specialization.name for s in model.specializations),
+        contacts=list(_schemas.CompanyContact.from_orm(c) for c in model.contacts)
+    )
+
+
+async def get_company_by_name(
+       name: str,
+       se: _orm.Session 
+):
+    model = se.query(_models.Company).filter_by(name=name).first()
+    if not model:
+        raise _fastapi.HTTPException(404, "no such company")
+    return _schemas.Company(
+        id=model.id,
+        name=model.name,
+        teachers=model.teachers,
+        tags=list(s.specialization.name for s in model.specializations),
+        contacts=list(_schemas.CompanyContact.from_orm(c) for c in model.contacts)
     )
 
 
@@ -474,3 +463,40 @@ async def drop_teacher_by_id(
     teacher = se.get(_models.Teacher, id)
     se.delete(teacher)
     se.commit()
+
+
+async def create_company(
+        data: _schemas.CompanyCreate,
+        se: _orm.Session
+):
+    if se.query(_models.Company).filter_by(name=data.name).first():
+        raise _fastapi.HTTPException(400, "Company already exists")
+
+    for tag in data.tags:
+        if not se.query(_models.Specialization).filter_by(name=tag).first():
+            raise _fastapi.HTTPException(404, f"no such tag: {tag}")
+
+    company = _models.Company(name=data.name)
+    se.add(company)
+    se.commit()
+    se.refresh(company)
+    if not company:
+        raise _fastapi.HTTPException(409, "Unable to save company")
+
+    for tag in data.tags:
+        tag_model = se.query(_models.Specialization).filter_by(name=tag).first()
+        cp = _models.CompanySpecializations(
+            company_id=company.id,
+            specialization_id=tag_model.id
+        )
+        se.add(cp)
+        se.commit()
+
+    for contact in data.contacts:
+        model = _models.CompanyContacts(
+            company_id=company.id,
+            kind=contact.kind,
+            value=contact.value
+        )
+        se.add(model)
+        se.commit()

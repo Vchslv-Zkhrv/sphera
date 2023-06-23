@@ -150,7 +150,7 @@ async def on_logout(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE)
         se.close()
 
 
-if __name__ == '__main__':
+def run():
     application = _ext.ApplicationBuilder().token(_TOKEN).build()
     application.add_handler(_ext.CommandHandler("start", on_start))
     application.add_handler(_ext.CommandHandler("login", on_add_admin))
@@ -158,3 +158,14 @@ if __name__ == '__main__':
     application.add_handler(_ext.CommandHandler("logout", on_logout))
     application.add_handler(_ext.MessageHandler(_ext.filters.TEXT, on_message))
     application.run_polling()
+
+
+if __name__ == '__main__':
+
+    while True:
+        try:
+            run()
+        except KeyboardInterrupt:
+            exit(0)
+        finally:
+            run()

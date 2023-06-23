@@ -17,7 +17,7 @@ link_actions = _typing.Literal[
     "join group",
     "verify email"
 ]
-conatcs_types = _typing.Literal[
+contacts_types = _typing.Literal[
     "phone",
     "address",
     "email",
@@ -146,12 +146,26 @@ class TeacherFull(Teacher, _UserFull):
     pass
 
 
+class CompanyContact(_Base):
+
+    id: int
+    kind: contacts_types
+    value: str
+
+
+class CompanyContactCreate(_Base):
+
+    kind: contacts_types
+    value: str
+
+
 class Company(_Base):
 
     id: int
     name: str
     teachers: _typing.List[Teacher]
     tags: _typing.List[str]
+    contacts: _typing.List[CompanyContact]
 
 
 class Specialization(_Base):
@@ -164,6 +178,7 @@ class CompanyCreate(_Base):
 
     name: str
     tags: _typing.List[str]
+    contacts: _typing.List[CompanyContactCreate]
 
 
 class CompanyUpdate(_Base):
@@ -378,26 +393,50 @@ class _ApplicationBase(_Base):
     reason: _typing.Optional[str]
 
 
+class _JsonApplicationBase(_ApplicationBase):
+
+    id: int
+    date: _dt.datetime
+
+
 class _TagApplicationBase(_ApplicationBase):
 
     name: str
 
 
-class CreateTagApplication(_TagApplicationBase):
+class CreateTagApplicationCreate(_TagApplicationBase):
     pass
 
 
-class CreateCompanyApplication(CompanyCreate, _ApplicationBase):
+class CreateTagApplication(_TagApplicationBase, _JsonApplicationBase):
     pass
 
 
-class DeleteCompanyApplication(_ApplicationBase):
+class CreateCompanyApplicationCreate(CompanyCreate, _ApplicationBase):
+    pass
+
+
+class CreateCompanyApplication(CompanyCreate, _JsonApplicationBase):
+    pass
+
+
+class DeleteCompanyApplicationCreate(_ApplicationBase):
 
     company_id: str
     reason: str
 
 
-class UpdateCompanyApplication(CompanyUpdate, _ApplicationBase):
+class DeleteCompanyApplication(_JsonApplicationBase):
+
+    company_id: str
+    reason: str
+
+
+class UpdateCompanyApplicationCreate(CompanyUpdate, _ApplicationBase):
+    pass
+
+
+class UpdateCompanyApplication(CompanyUpdate, _JsonApplicationBase):
     pass
 
 
@@ -412,3 +451,9 @@ class AllApplications(_Base):
 
     tags: _typing.List[CreateTagApplication]
     companies: AllCompanyApplications
+
+
+class ApplicationDecision(_Base):
+
+    apply: bool
+    reason: _typing.Optional[str] = _Field(default="")

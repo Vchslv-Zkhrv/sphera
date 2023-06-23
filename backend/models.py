@@ -25,7 +25,7 @@ class User(_db.Base):
     sname = _sql.Column(_sql.String, nullable=True)
     date_created = _sql.Column(_sql.DateTime)
     date_online = _sql.Column(_sql.DateTime)
-    sign = _sql.Column(_sql.String, nullable=False)
+    sign = _sql.Column(_sql.String, nullable=True)
     telegram = _sql.Column(_sql.Integer, nullable=True, index=True)
     confirmed = _sql.Column(_sql.Boolean, nullable=False, index=True, default=False)
 
@@ -79,7 +79,7 @@ class Company(_db.Base):
     teachers: _orm.Mapped[_typing.List["Teacher"]] = \
         _orm.relationship(back_populates="company")
 
-    contacts = _orm.Mapped[_typing.List["CompanyContacts"]] = \
+    contacts: _orm.Mapped[_typing.List["CompanyContacts"]] = \
         _orm.relationship(back_populates="company")
 
 
@@ -88,7 +88,7 @@ class CompanyContacts(_db.Base):
     __tablename__ = "company_contacts"
 
     id = _sql.Column(_sql.Integer,  primary_key=True, index=True)
-    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company_id"), nullable=False, index=True)
+    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company.id"), nullable=False, index=True)
     kind = _sql.Column(_sql.String, nullable=False, index=True)
     value = _sql.Column(_sql.String, nullable=False, unique=True)
 
@@ -132,7 +132,7 @@ class Teacher(_db.Base):
     __tablename__ = "teacher"
 
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True, index=True)
-    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company.id"), index=True)
+    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company.id"), index=True, nullable=True)
     bio = _sql.Column(_sql.String, nullable=True, index=False)
 
     user: _orm.Mapped["User"] = \
@@ -221,7 +221,7 @@ class Group(_db.Base):
     __tablename__ = "group"
 
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
-    name = _sql.Column(_sql.String, unique=True, nullable=False, index=True)
+    name = _sql.Column(_sql.String, nullable=False, index=True)
     teacher_id = _sql.Column(_sql.Integer, _sql.ForeignKey("teacher.user_id"))
 
     teacher: _orm.Mapped["Teacher"] = \
@@ -354,7 +354,7 @@ class ChatMembers(_db.Base):
 
     chat_id = _sql.Column(_sql.Integer, _sql.ForeignKey("chat.id"), primary_key=True)
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True)
-    admin = _sql.Column(_sql.Boolean)
+    admin = _sql.Column(_sql.Boolean, nullable=False    )
 
     chat: _orm.Mapped["Chat"] = \
         _orm.relationship(back_populates="members", cascade="delete")

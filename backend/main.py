@@ -189,7 +189,7 @@ async def regist_company(
     await _services.create_company(data, session)
 
 
-@fastapi.get("/api/compamies/{id}", response_model=_schemas.Company)
+@fastapi.get("/api/companies/{id}", response_model=_schemas.Company)
 async def get_company_public_data(
     id: int,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -348,12 +348,30 @@ async def get_logo_for_static_page(name:_emails.static_logos):
 
 
 @fastapi.post("/api/applications/company/create", status_code=204)
-async def apply_for_company_registration(application: _schemas.CreateCompanyApplication):
+async def apply_for_company_registration(application: _schemas.CreateCompanyApplicationCreate):
     await _applications.add_create_company_application(application)
 
 
 @fastapi.get("/api/applications/all", response_model=_schemas.AllApplications)
 async def get_all_applications(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    logger.debug("")
+    if not user:
+        return _cookies.get_unsign_response()
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _applications.get_all_applications()
+
+
+@fastapi.put("/api/applications/{atype}/{id}", status_code=204)
+async def respond_to_application(
+    atype: _applications.applications_types,
+    id: int,
+    decision: _schemas.ApplicationDecision,
     user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
@@ -363,4 +381,12 @@ async def get_all_applications(
         await _cookies.check_admin_cookie(user, session)
     except _cookies.CookieError:
         return _cookies.get_unsign_response()
-    return await _applications.get_all_applications()
+    application: _schemas.CreateCompanyApplication = await _applications.get_application(atype, id)
+    if not application:
+        raise _fastapi.HTTPException(404, "no such application")
+    _applications.delete_application(atype, id)
+    if decision.apply:
+        company = await _services.get_company_by_name(application.name, session)
+        await _emails.send_create_company_success_email(application.applicant_email, company)
+    else:
+        await _emails.send_create_company_reject_email(application.applicant_email, decision.reason)

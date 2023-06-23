@@ -17,6 +17,15 @@ link_actions = _typing.Literal[
     "join group",
     "verify email"
 ]
+conatcs_types = _typing.Literal[
+    "phone",
+    "address",
+    "email",
+    "site",
+    "vk",
+    "ok",
+    "telegram",
+]
 
 
 class _Base(_BM):

@@ -79,6 +79,22 @@ class Company(_db.Base):
     teachers: _orm.Mapped[_typing.List["Teacher"]] = \
         _orm.relationship(back_populates="company")
 
+    contacts = _orm.Mapped[_typing.List["CompanyContacts"]] = \
+        _orm.relationship(back_populates="company")
+
+
+class CompanyContacts(_db.Base):
+
+    __tablename__ = "company_contacts"
+
+    id = _sql.Column(_sql.Integer,  primary_key=True, index=True)
+    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company_id"), nullable=False, index=True)
+    kind = _sql.Column(_sql.String, nullable=False, index=True)
+    value = _sql.Column(_sql.String, nullable=False, unique=True)
+
+    company: _orm.Mapped["Company"] = \
+        _orm.relationship(back_populates="contacts", cascade="delete")
+
 
 class Specialization(_db.Base):
 
@@ -116,7 +132,7 @@ class Teacher(_db.Base):
     __tablename__ = "teacher"
 
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True, index=True)
-    company_name = _sql.Column(_sql.String, _sql.ForeignKey("company.name"), index=True)
+    company_id = _sql.Column(_sql.Integer, _sql.ForeignKey("company.id"), index=True)
     bio = _sql.Column(_sql.String, nullable=True, index=False)
 
     user: _orm.Mapped["User"] = \

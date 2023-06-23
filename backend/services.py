@@ -168,7 +168,7 @@ async def create_teacher(
 
     teacher = _models.Teacher(
         user_id=user.id,
-        company_name=company.name,
+        company_id=company.id,
         bio=data.bio
     )
     se.add(teacher)

@@ -103,7 +103,7 @@ async def on_admmin_auth(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_
         )
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"{_emoji.RED_CIRCLE} Удалите сообщение с логином и паролем!"
+            text=f"{_emoji.WARNING} Удалите сообщение с логином и паролем!"
         )
     finally:
         se.close()
@@ -127,12 +127,34 @@ async def on_message(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE
         )
 
 
+async def on_logout(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+    if not update.effective_chat:
+        return
+    se = _dt.SessionLocal()
+    try:
+        admin = se.query(_models.Admin).filter_by(telegram=update.effective_chat.id).first()
+        if not admin:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"{_emoji.ENRAGED_FACE} Вы не администратор!"
+            )
+            return
+        admin.telegram = None
+        se.commit()
+        se.refresh(admin)
+        await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"{_emoji.WAVING_HAND} Вы были отписаны от рассылки уведомлений"
+            )
+    finally:
+        se.close()
+
+
 if __name__ == '__main__':
     application = _ext.ApplicationBuilder().token(_TOKEN).build()
-    start_handler = _ext.CommandHandler('start', on_start)
-    login_handler = _ext.CommandHandler("login", on_add_admin)
-    text_handler = _ext.MessageHandler(_ext.filters.TEXT, on_message)
-    application.add_handler(start_handler)
-    application.add_handler(login_handler)
-    application.add_handler(text_handler)
+    application.add_handler(_ext.CommandHandler("start", on_start))
+    application.add_handler(_ext.CommandHandler("login", on_add_admin))
+    application.add_handler(_ext.CommandHandler("help", on_help))
+    application.add_handler(_ext.CommandHandler("logout", on_logout))
+    application.add_handler(_ext.MessageHandler(_ext.filters.TEXT, on_message))
     application.run_polling()

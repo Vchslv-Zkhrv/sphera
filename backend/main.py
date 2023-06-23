@@ -10,6 +10,7 @@ import services as _services
 import schemas as _schemas
 from emails import emails as _emails
 import links as _links
+from applications import applications as _applications
 
 
 """
@@ -345,8 +346,5 @@ async def get_logo_for_static_page(name:_emails.static_logos):
 
 
 @fastapi.post("/api/applications/company/create", status_code=204)
-async def apply_for_company_registration(
-    application: _schemas.CreateCompanyApplication,
-    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
-):
-    pass
+async def apply_for_company_registration(application: _schemas.CreateCompanyApplication):
+    await _applications.add_create_company_application(application)

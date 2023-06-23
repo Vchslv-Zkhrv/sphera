@@ -8,3 +8,4 @@ frontend/node_modules
 frontend/package-lock.json
 backend/emails/media
 backend/emails/__pycache__
+backend/applications/__pycache__

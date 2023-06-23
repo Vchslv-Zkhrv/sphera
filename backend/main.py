@@ -148,9 +148,16 @@ async def admin_log_out():
 @fastapi.post("/api/tags",  status_code=204)
 async def load_tags(
     tags: _typing.List[str],
+    user: usertype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
+    if not user:
+        raise _fastapi.HTTPException(401, "no user")
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
     await _services.create_specializations(tags, session)
 
 
@@ -335,3 +342,11 @@ async def get_logo_for_email():
 @fastapi.get("/api/images/static/{name}")
 async def get_logo_for_static_page(name:_emails.static_logos):
     return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/{name}")
+
+
+@fastapi.post("/api/applications/company/create", status_code=204)
+async def apply_for_company_registration(
+    application: _schemas.CreateCompanyApplication,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    pass

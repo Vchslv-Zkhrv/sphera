@@ -3,7 +3,6 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 from config import TELEGRAM_MAIN_BOT_TOKEN
 
-
 """
 Данный модуль должен быть запущен в отдельном потоке.
 Обрабатывает сообщения, приходящие на https://t.me/sphera_project_bot,

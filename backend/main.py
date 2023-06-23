@@ -307,6 +307,8 @@ async def get_student_by_admin(
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
+    if not user:
+        return _cookies.get_unsign_response()
     try:
         await _cookies.check_admin_cookie(user, session)
     except _cookies.CookieError:
@@ -348,3 +350,17 @@ async def get_logo_for_static_page(name:_emails.static_logos):
 @fastapi.post("/api/applications/company/create", status_code=204)
 async def apply_for_company_registration(application: _schemas.CreateCompanyApplication):
     await _applications.add_create_company_application(application)
+
+
+@fastapi.get("/api/applications/all", response_model=_schemas.AllApplications)
+async def get_all_applications(
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    if not user:
+        return _cookies.get_unsign_response()
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    return await _applications.get_all_applications()

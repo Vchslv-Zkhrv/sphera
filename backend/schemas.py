@@ -378,15 +378,6 @@ class CreateTagApplication(_TagApplicationBase):
     pass
 
 
-class DeleteTagApplication(_TagApplicationBase):
-    pass
-
-
-class UpdateTagApplication(_TagApplicationBase):
-
-    new_name: str
-
-
 class CreateCompanyApplication(CompanyCreate, _ApplicationBase):
     pass
 
@@ -399,3 +390,16 @@ class DeleteCompanyApplication(_ApplicationBase):
 
 class UpdateCompanyApplication(CompanyUpdate, _ApplicationBase):
     pass
+
+
+class AllCompanyApplications(_Base):
+
+    create: _typing.List[CreateCompanyApplication]
+    update: _typing.List[UpdateCompanyApplication]
+    delete: _typing.List[DeleteCompanyApplication]
+
+
+class AllApplications(_Base):
+
+    tags: _typing.List[CreateTagApplication]
+    companies: AllCompanyApplications

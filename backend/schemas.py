@@ -11,12 +11,15 @@ pydantic - структуры, используемые в приложении
 
 
 users_roles = _typing.Literal["student", "teacher"]
+
 mark_values = _typing.Literal[None, 2, 3, 4, 5]
+
 link_actions = _typing.Literal[
     "join chat",
     "join group",
     "verify email"
 ]
+
 contacts_types = _typing.Literal[
     "phone",
     "address",
@@ -25,6 +28,34 @@ contacts_types = _typing.Literal[
     "vk",
     "ok",
     "telegram",
+]
+
+email_templates = _typing.Literal[
+    "verify_email",
+    "create_company_promise",
+    "create_company_reject",
+    "create_company_success",
+    "update_company_promice",
+    "update_company_reject",
+    "update_company_success",
+    "delete_company_promise",
+    "delete_company_reject",
+    "delete_company_success",
+    "create_tags_promise",
+    "create_tags_success",
+    "create_tags_reject",
+]
+
+static_logos = _typing.Literal["logo.png", "alter-logo.png"]
+
+static_templates = _typing.Literal[
+    "link_expired",
+    "link_invalid",
+    "link_overused",
+    "link_join_useless",
+    "verify_email_success",
+    "account_not_activated",
+    "internal_server_error"
 ]
 
 

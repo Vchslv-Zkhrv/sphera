@@ -6,8 +6,8 @@ backend/config.py
 backend/logs
 frontend/node_modules
 frontend/package-lock.json
-backend/emails/media
 backend/emails/__pycache__
 backend/applications/__pycache__
 backend/applications/tags
 backend/applications/companies
+backend/staticpages/__pycache__

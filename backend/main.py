@@ -11,6 +11,7 @@ import schemas as _schemas
 from emails import emails as _emails
 import links as _links
 from applications import applications as _applications
+from staticpages import staticpages as _staticpages
 
 
 """
@@ -325,26 +326,21 @@ async def email_verification(
     try:
         await _links.verify_email(url, session)
     except _links.LinkInvalidError:
-        return await _emails.get_link_invalid_page()
+        return await _staticpages.get_link_invalid_page()
     except _links.LinkExpiredError:
-        return await _emails.get_link_expired_page()
+        return await _staticpages.get_link_expired_page()
     except _links.LinkOverusedError:
-        return await _emails.get_link_overused_page()
+        return await _staticpages.get_link_overused_page()
     except Exception as e:
         logger.error(f"Failed to process verification link {url}: {e}")
-        return await _emails.get_link_500_error_page()
+        return await _staticpages.get_link_500_error_page()
     else:
-        return await _emails.get_verify_email_success_page()
-
-
-@fastapi.get("/api/images/email/")
-async def get_logo_for_email():
-    return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/logo.png")
+        return await _staticpages.get_verify_email_success_page()
 
 
 @fastapi.get("/api/images/static/{name}")
-async def get_logo_for_static_page(name:_emails.static_logos):
-    return _fastapi.responses.FileResponse(f"{_os.getcwd()}/emails/media/{name}")
+async def get_logo_for_static_page(name: _schemas.static_logos):
+    return _fastapi.responses.FileResponse(f"{_os.getcwd()}/data/logos/{name}")
 
 
 @fastapi.post("/api/applications/company/create", status_code=204)

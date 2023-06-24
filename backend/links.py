@@ -1,7 +1,6 @@
 import datetime as _datetime
 import hashlib as _hashlib
 
-import fastapi as _fastapi
 from sqlalchemy import orm as _orm
 
 import models as _models

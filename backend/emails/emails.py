@@ -10,84 +10,17 @@ from email import encoders as _encoders
 from email.message import Message as _Message
 from loguru import logger as _logger
 import aiofiles as _aiofiles
-import fastapi as _fastapi
 
 from config import SMTP_LOGIN as _LOGIN, SMTP_APPLICATION_PASSWORD as _PASSWORD, DOMAIN as _DOMAIN
 import models as _models
 import tg as _tg
+import schemas as _schemas
 
 
 """
 Рассылка сообщений по электронной почте
 
 """
-
-
-static_logos = _typing.Literal["logo.png", "alter-logo.png"]
-email_templates = _typing.Literal[
-    "verify_email",
-    "create_company_promise",
-    "create_company_reject",
-    "create_company_success",
-    "update_company_promice",
-    "update_company_reject",
-    "update_company_success",
-    "delete_company_promise",
-    "delete_company_reject",
-    "delete_company_success",
-    "create_tags_promise",
-    "create_tags_success",
-    "create_tags_reject",
-]
-static_templates = _typing.Literal[
-    "link_expired",
-    "link_invalid",
-    "link_overused",
-    "link_join_useless",
-    "verify_email_success",
-    "account_not_activated",
-    "internal_server_error"
-]
-
-
-async def get_static_page(
-        template_name: static_templates,
-        src: static_logos
-):
-    async with _aiofiles.open(
-            f"{_os.getcwd()}/emails/templates/{template_name}.html", "r", encoding="utf-8"
-    ) as html:
-        content = await html.read()
-        content = content.replace("!SRC!", f"{_DOMAIN}/api/images/static/{src}")
-        return _fastapi.responses.HTMLResponse(content=content)
-
-
-async def get_verify_email_success_page():
-    return await get_static_page("verify_email_success", "logo.png")
-
-
-async def get_link_expired_page():
-    return await get_static_page("link_expired", "alter-logo.png")
-
-
-async def get_link_overused_page():
-    return await get_static_page("link_overused", "alter-logo.png")
-
-
-async def get_link_join_useless_page():
-    return await get_static_page("link_join_useless", "alter-logo.png")
-
-
-async def get_link_invalid_page():
-    return await get_static_page("link_invalid", "alter-logo.png")
-
-
-async def get_account_not_activated_page():
-    return await get_static_page("account_not_activated", "alter-logo.png")
-
-
-async def get_link_500_error_page():
-    return await get_static_page("internal_server_error", "alter-logo.png")
 
 
 async def send_message(
@@ -108,8 +41,8 @@ async def send_message(
         _logger.debug(f"sended successfuly: {to}")
 
 
-async def _attach_logo(message: _Message, logo: static_logos):
-    async with _aiofiles.open(f"{_os.getcwd()}/emails/media/{logo}", 'rb') as f:
+async def _attach_logo(message: _Message, logo: _schemas.static_logos):
+    async with _aiofiles.open(f"{_os.getcwd()}/data/logos/{logo}", 'rb') as f:
         mime = _MIMEBase('image', 'png', filename='logo.png')
         mime.add_header('Content-Disposition', 'attachment', filename='logo.png')
         mime.add_header('X-Attachment-Id', '0')
@@ -132,8 +65,8 @@ def _get_message(to: str, subject: str):
 async def _create_message(
         to: str,
         subject: str,
-        logo: static_logos,
-        template: email_templates,
+        logo: _schemas.static_logos,
+        template: _schemas.email_templates,
         **replaces
 ):
     message = _get_message(to, subject)
@@ -142,14 +75,14 @@ async def _create_message(
     await send_message(to, message.as_string())
 
 
-async def _attach_template(message: _Message, template: email_templates, **replace):
+async def _attach_template(message: _Message, template: _schemas.email_templates, **replace):
 
     async with _aiofiles.open(f"{_os.getcwd()}/emails/templates/{template}.html", "r", encoding="utf-8") as file:
-            html = await file.read()
-            for key, value in replace.items():
-                html = html.replace(f"!{key.upper()}!", value)
-            payload = _MIMEText(html, "HTML", "UTF-8")
-            message.attach(payload)
+        html = await file.read()
+        for key, value in replace.items():
+            html = html.replace(f"!{key.upper()}!", value)
+        payload = _MIMEText(html, "HTML", "UTF-8")
+        message.attach(payload)
     return message
 
 

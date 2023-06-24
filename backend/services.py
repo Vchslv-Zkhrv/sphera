@@ -13,6 +13,7 @@ import models as _models
 import schemas as _schemas
 from config import PASSWORD_SALT
 import cookies as _cookies
+from courses import courses as _courses
 
 
 """
@@ -689,12 +690,43 @@ async def check_cookie_and_update_user_online(
         _logger.error(f"cannot update user date online {e=}")
 
 
+async def get_lesson_model(
+        course: _models.Course,
+        number: int
+):
+    for lesson in course.lessons:
+        if number == lesson.number:
+            return lesson
+    else:
+        raise _fastapi.HTTPException(404, "No such lesson")
+
+
 async def get_lesson(
         course: _models.Course,
         number: int
 ):
     for lesson in course.lessons:
-        if number==lesson.number:
-            return lesson
+        if number == lesson.number:
+            return _schemas.LessonFull(
+                id=lesson.id,
+                number=lesson.number,
+                name=lesson.name,
+                description=lesson.description,
+                duration=lesson.duration,
+                steps=_courses.get_lesson_steps_numbers(course.id, lesson.number)
+            )
+    else:
+        raise _fastapi.HTTPException(404, "No such lesson")
+
+
+async def drop_lesson(
+        course: _models.Course,
+        number: int,
+        se: _orm.Session
+):
+    for lesson in course.lessons:
+        if number == lesson.number:
+            model = lesson
+            break
     else:
         raise _fastapi.HTTPException(404, "No such lesson")

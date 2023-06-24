@@ -562,7 +562,7 @@ async def create_course_step(
     course = _services.get_course_model(id, session)
     if course.author_id != usermodel.id:
         raise _fastapi.HTTPException(400, "Permission denied")
-    await _services.get_lesson(course, number)
+    await _services.get_lesson_model(course, number)
     if not _courses.is_lesson_initialized(id, number):
         raise _fastapi.HTTPException(404, "no such lesson")
     return await _courses.initialize_step(id, number)
@@ -587,7 +587,7 @@ async def set_step_text(
     course = _services.get_course_model(id, session)
     if course.author_id != usermodel.id:
         raise _fastapi.HTTPException(400, "Permission denied")
-    await _services.get_lesson(course, lesson_number)
+    await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
         raise _fastapi.HTTPException(404, "no such lesson")
     await _courses.write_into_step(id, lesson_number, step_number, text.text)
@@ -612,7 +612,7 @@ async def load_step_image(
     course = _services.get_course_model(id, session)
     if course.author_id != usermodel.id:
         raise _fastapi.HTTPException(400, "Permission denied")
-    await _services.get_lesson(course, lesson_number)
+    await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
         raise _fastapi.HTTPException(404, "no such lesson")
     await _courses.upload_step_image(id, lesson_number, step_number, upload)
@@ -628,7 +628,7 @@ async def get_step_text(
 ):
     await _services.check_cookie_and_update_user_online(user, session)
     course = _services.get_course_model(id, session)
-    await _services.get_lesson(course, lesson_number)
+    await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
         raise _fastapi.HTTPException(404, "no such lesson")
     return await _courses.get_step_text(id, lesson_number, step_number)
@@ -644,7 +644,19 @@ async def get_step_image(
 ):
     await _services.check_cookie_and_update_user_online(user, session)
     course = _services.get_course_model(id, session)
-    await _services.get_lesson(course, lesson_number)
+    await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
         raise _fastapi.HTTPException(404, "no such lesson")
     return await _courses.get_step_image(id, lesson_number, step_number)
+
+
+@fastapi.get("/api/courses/{id}/lessons/{number}", response_model=_schemas.LessonFull)
+async def get_lesson(
+    id: int,
+    number: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    course = _services.get_course_model(id, session)
+    return await _services.get_lesson(course, number)

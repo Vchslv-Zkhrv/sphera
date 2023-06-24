@@ -183,9 +183,6 @@ class Course(_db.Base):
     sessions: _orm.Mapped[_typing.List["Session"]] = \
         _orm.relationship(back_populates="course")
 
-    progresses: _orm.Mapped[_typing.List["Progress"]] = \
-        _orm.relationship(back_populates="course")
-
     lessons: _orm.Mapped[_typing.List["Lesson"]] = \
         _orm.relationship(back_populates="course")
 
@@ -220,6 +217,9 @@ class Lesson(_db.Base):
 
     course: _orm.Mapped["Course"] = \
         _orm.relationship(back_populates="lessons")
+
+    progresses: _orm.Mapped[_typing.List["Progress"]] = \
+        _orm.relationship(back_populates="lesson")
 
 
 class Group(_db.Base):
@@ -276,6 +276,9 @@ class Session(_db.Base):
     hometasks: _orm.Mapped[_typing.List["Hometask"]] = \
         _orm.relationship(back_populates="session")
 
+    progresses: _orm.Mapped[_typing.List["Progress"]] = \
+        _orm.relationship(back_populates="session")
+
 
 class GroupSessions(_db.Base):
 
@@ -330,15 +333,18 @@ class Progress(_db.Base):
     __tablename__ = "progress"
 
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
-    student_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"))
-    course_id = _sql.Column(_sql.Integer, _sql.ForeignKey("course.id"))
-    lesson = _sql.Column(_sql.Integer, nullable=False)
+    student_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), index=True)
+    lesson_id = _sql.Column(_sql.Integer, _sql.ForeignKey("lesson.id"), index=True)
+    session_id = _sql.Column(_sql.Integer, _sql.ForeignKey("session.id"), index=True)
     step = _sql.Column(_sql.Integer, nullable=False)
 
     student: _orm.Mapped["User"] = \
         _orm.relationship(back_populates="progresses")
 
-    course: _orm.Mapped["Course"] = \
+    lesson: _orm.Mapped["Lesson"] = \
+        _orm.relationship(back_populates="progresses")
+
+    session: _orm.Mapped["Session"] = \
         _orm.relationship(back_populates="progresses")
 
 

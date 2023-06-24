@@ -5,6 +5,7 @@ import datetime as _dt
 import sqlalchemy.orm as _orm
 from sqlalchemy import func as _func
 import passlib.hash as _hash
+import pydantic as _pydantic
 
 import database as _database
 import models as _models
@@ -500,3 +501,10 @@ async def create_company(
         )
         se.add(model)
         se.commit()
+
+
+async def get_all_tags(se: _orm.Session):
+    return _pydantic.parse_obj_as(
+        _typing.List[_schemas.Specialization],
+        se.query(_models.Specialization).all()
+    )

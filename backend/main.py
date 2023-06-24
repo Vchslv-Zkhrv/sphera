@@ -390,3 +390,8 @@ async def respond_to_application(
         await _emails.send_create_company_success_email(application.applicant_email, company)
     else:
         await _emails.send_create_company_reject_email(application.applicant_email, decision.reason)
+
+
+@fastapi.get("/api/tags/all", response_model=_typing.List[_schemas.Specialization])
+async def get_all_tags(session: _orm.Session = _fastapi.Depends(_services.get_db_session)):
+    return await _services.get_all_tags(session)

@@ -26,16 +26,16 @@ import tg as _tg
 static_logos = _typing.Literal["logo.png", "alter-logo.png"]
 email_templates = _typing.Literal[
     "verify_email",
-    "create_company_promice",
+    "create_company_promise",
     "create_company_reject",
     "create_company_success",
     "update_company_promice",
     "update_company_reject",
     "update_company_success",
-    "delete_company_promice",
+    "delete_company_promise",
     "delete_company_reject",
     "delete_company_success",
-    "create_tags_promice",
+    "create_tags_promise",
     "create_tags_success",
     "create_tags_reject",
 ]
@@ -129,71 +129,158 @@ def _get_message(to: str, subject: str):
     return message
 
 
+async def _create_message(
+        to: str,
+        subject: str,
+        logo: static_logos,
+        template: email_templates,
+        **replaces
+):
+    message = _get_message(to, subject)
+    message = await _attach_logo(message, logo)
+    message = await _attach_template(message, template, **replaces)
+    await send_message(to, message.as_string())
+
+
+async def _attach_template(message: _Message, template: email_templates, **replace):
+
+    async with _aiofiles.open(f"{_os.getcwd()}/emails/templates/{template}.html", "r", encoding="utf-8") as file:
+            html = await file.read()
+            for key, value in replace.items():
+                html = html.replace(f"!{key.upper()}!", value)
+            payload = _MIMEText(html, "HTML", "UTF-8")
+            message.attach(payload)
+    return message
+
+
 async def send_verification_email(
         link: _models.Link,
         user: _models.User
 ):
-
-    message = _get_message(user.email, "Регистрация аккаунта на Проекте Сфера")
-    message = _attach_logo(message, "logo.png")
-
-    async with _aiofiles.open(f"{_os.getcwd()}/emails/templates/verify_email.html", "r", encoding="utf-8") as file:
-        html = await file.read()
-        html = html.replace("!HREF!", f"{_DOMAIN}/api/verification/{link.url}")
-        payload = _MIMEText(html, "HTML", "UTF-8")
-        message.attach(payload)
-
-    await send_message(user.email, message.as_string())
+    await _create_message(
+        to=user.email,
+        subject="Регистрация аккаунта на Проекте Сфера",
+        logo="logo.png",
+        template="verify_email",
+        href=f"{_DOMAIN}/api/verification/{link.url}"
+    )
 
 
 async def send_create_company_promise_email(to: str):
-
-    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
-    message = await _attach_logo(message, "logo.png")
-
-    async with _aiofiles.open(
-            f"{_os.getcwd()}/emails/templates/create_company_promise.html",
-            "r",
-            encoding="utf-8"
-    ) as file:
-        payload = _MIMEText(await file.read(), "HTML", "UTF-8")
-        message.attach(payload)
-
-    await send_message(to, message.as_string())
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на регистрацию учебного заведения",
+        logo="logo.png",
+        template="create_company_promise"
+    )
 
 
 async def send_create_company_success_email(to: str, company: _models.Company):
-
-    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
-    message = await _attach_logo(message, "logo.png")
-
-    async with _aiofiles.open(
-            f"{_os.getcwd()}/emails/templates/create_company_success.html",
-            "r",
-            encoding="utf-8"
-    ) as file:
-        html = await file.read()
-        html = html.replace("!HREF!", f"{_DOMAIN}/api/companies/{company.id}")
-        html = html.replace("!COMPANY!", company.name)
-        payload = _MIMEText(html, "HTML", "UTF-8")
-        message.attach(payload)
-
-    await send_message(to, message.as_string())
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на регистрацию учебного заведения",
+        logo="logo.png",
+        template="create_company_success",
+        href=f"{_DOMAIN}/api/companies/{company.id}"
+    )
 
 
 async def send_create_company_reject_email(to: str, reason: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на регистрацию учебного заведения",
+        logo="logo.png",
+        template="create_company_reject",
+        reason=reason
+    )
 
-    message = _get_message(to, "Ответ по заявке на регистрацию учебного заведения")
-    message = await _attach_logo(message, "logo.png")
 
-    async with _aiofiles.open(
-            f"{_os.getcwd()}/emails/templates/create_company_reject.html",
-            "r",
-            encoding="utf-8"
-    ) as file:
-        html = await file.read()
-        html = html.replace("!REASON!", reason)
-        payload = _MIMEText(html, "HTML", "UTF-8")
-        message.attach(payload)
+async def send_update_company_promise_email(to: str, company: _models.Company):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на изменение данных учебного заведения",
+        logo="logo.png",
+        template="update_company_promise",
+        company=company
+    )
 
-    await send_message(to, message.as_string())
+
+async def send_update_company_reject_email(to: str, company: _models.Company, reason: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на изменение данных учебного заведения",
+        logo="logo.png",
+        template="update_company_reject",
+        company=company.name,
+        reason=reason
+    )
+
+
+async def send_update_company_success_email(to: str, company: _models.Company):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на изменение данных учебного заведения",
+        logo="logo.png",
+        template="update_company_success",
+        company=company.name,
+        href=f"{_DOMAIN}/api/companies/{company.id}"
+    )
+
+
+async def send_delete_company_promise_email(to: str, company: _models.Company):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на удаление учебного заведения с сайта Проекта Сфера",
+        logo="logo.png",
+        template="delete_company_promise",
+        company=company.name
+    )
+
+
+async def send_delete_company_success_email(to: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на удаление учебного заведения с сайта Проекта Сфера",
+        logo="logo.png",
+        template="delete_company_success",
+    )
+
+
+async def send_delete_company_reject_email(to: str, company: _models.Company, reason: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на удаление учебного заведения с сайта Проекта Сфера",
+        logo="logo.png",
+        template="delete_company_success",
+        company=company.name,
+        reason=reason
+    )
+
+
+async def send_create_tags_promise_email(to: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на добавление новых тегов профессий на сайт Преокта Сфера",
+        logo="logo.png",
+        template="create_tags_promise"
+    )
+
+
+async def send_create_tags_success_email(to: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на добавление новых тегов профессий на сайт Преокта Сфера",
+        logo="logo.png",
+        template="create_tags_success",
+        href=f"{_DOMAIN}/api/tags/all"
+    )
+
+
+async def send_create_tags_reject_email(to: str, reason: str):
+    await _create_message(
+        to=to,
+        subject="Ответ по заявке на добавление новых тегов профессий на сайт Преокта Сфера",
+        logo="logo.png",
+        template="create_tags_reject",
+        reason=reason
+    )

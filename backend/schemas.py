@@ -67,6 +67,8 @@ static_templates = _typing.Literal[
 
 companies_sort_types = _typing.Literal["id", "name"]
 
+allowed_image_extensions = _typing.Literal["png", "jpeg", "jpg"]
+
 
 class _Base(_BM):
 
@@ -280,6 +282,14 @@ class LessonShort(_Base):
     id: int
     number: int
     name: str
+
+
+class LessonCreate(_Base):
+
+    number: int
+    name: str
+    description: str
+    duration: _dt.time
 
 
 class CourseFull(Course):

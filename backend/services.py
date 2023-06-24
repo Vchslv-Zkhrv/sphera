@@ -580,3 +580,46 @@ async def get_all_companies(
             .limit(pagesize)
         )
     )
+
+
+async def create_course(
+        data: _schemas.CourseCreate,
+        se: _orm.Session
+):
+    if se.query(_models.Course).filter_by(name=data.name).first():
+        raise _fastapi.HTTPException(409, "Course name already in use")
+    tags = list(se.query(_models.Specialization).filter_by(name=tname).first() for tname in data.tags)
+    if None in tags:
+        raise _fastapi.HTTPException(404, "No such tag")
+    course = _models.Course(
+        author_id=data.author_id,
+        name=data.name,
+        description=data.description,
+        date_created=_dt.datetime.utcnow(),
+        date_updated=_dt.datetime.utcnow(),
+        views=0
+    )
+    se.add(course)
+    se.commit()
+    se.refresh(course)
+    for tag in tags:
+        se.add(_models.CompanySpecializations(
+            specialization_id=tag.id,
+            course_id=course.id
+        ))
+        se.commit()
+
+
+async def create_lesson(
+        course: _models.Course,
+        data: _schemas.LessonCreate,
+        se: _orm.Session
+):
+    se.add(_models.Lesson(
+        name=data.name,
+        duration=data.duration,
+        description=data.description,
+        course_id=course.id,
+        number=data.number
+    ))
+    se.commit()

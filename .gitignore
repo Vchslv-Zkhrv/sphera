@@ -11,3 +11,5 @@ backend/applications/__pycache__
 backend/applications/tags
 backend/applications/companies
 backend/staticpages/__pycache__
+backend/courses/__pycache__
+backend/courses/courses

@@ -74,7 +74,7 @@ def _find_step_image_name(course_id: int, lesson_number: int, step_number: int):
         .intersection({f"{step_number}.png", f"{step_number}.jpg", f"{step_number}.jpeg"})
     )
     assert len(steps) < 2
-    return steps[0]
+    return steps[0] if steps else None
 
 
 def is_step_has_image(course_id: int, lesson_number: int, step_number: int):
@@ -83,7 +83,7 @@ def is_step_has_image(course_id: int, lesson_number: int, step_number: int):
     return bool(_find_step_image_name(course_id, lesson_number, step_number))
 
 
-async def get_lesson_image(course_id: int, lesson_number: int, step_number: int):
+async def get_step_image(course_id: int, lesson_number: int, step_number: int):
     if not is_step_has_image(course_id, lesson_number, step_number):
         raise _fastapi.HTTPException(404, "No step image")
     image_name = _find_step_image_name(course_id, lesson_number, step_number)
@@ -118,7 +118,9 @@ async def upload_step_image(
         raise _fastapi.HTTPException(409, "step already have an image")
     ext = upload.filename.split(".")[-1].lower()
     if ext not in ("png", "jpg", "jpeg"):
-        raise _fastapi.HTTPException(400, "Unsupportable image type")
+        raise _fastapi.HTTPException(415, "Unsupportable image type")
+    if upload.size > 1048576:
+        raise _fastapi.HTTPException(413, "Image too large")
     async with _aiofiles.open(
         f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}/{step_number}.{ext}",
         "wb"

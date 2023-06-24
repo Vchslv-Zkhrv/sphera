@@ -53,6 +53,9 @@ class User(_db.Base):
     teacher: _orm.Mapped["Teacher"] = \
         _orm.relationship(back_populates="user")
 
+    authorship: _orm.Mapped["Course"] = \
+        _orm.relationship(back_populates="author")
+
 
 class UserActivities(_db.Base):
 
@@ -185,6 +188,9 @@ class Course(_db.Base):
 
     lessons: _orm.Mapped[_typing.List["Lesson"]] = \
         _orm.relationship(back_populates="course")
+
+    author: _orm.Mapped["User"] = \
+        _orm.relationship(back_populates="authorship")
 
 
 class CourseTags(_db.Base):

@@ -230,16 +230,24 @@ class CompanyUpdate(_Base):
     contacts: _typing.Optional[_typing.List[CompanyContactCreate]]
 
 
+class LessonShort(_Base):
+
+    id: int
+    number: int
+    name: str
+
+
 class Course(_Base):
 
     id: int
     name: str
     description: str
-    author: _User
-    date_created: _dt.datetime
-    date_updated: _typing.Optional[_dt.datetime] = None
+    author: _typing.Union[StudentShort, TeacherShort]
+    date_created: _dt.date
+    date_updated: _typing.Optional[_dt.date] = None
     views: int = _Field(default=1)
     tags: _typing.List[Specialization]
+    lessons: _typing.List[LessonShort]
 
 
 class CourseShort(_Base):
@@ -275,13 +283,6 @@ class Step(_Base):
 class LessonFull(SqlLesson):
 
     steps: _typing.List[str]
-
-
-class LessonShort(_Base):
-
-    id: int
-    number: int
-    name: str
 
 
 class LessonCreate(_Base):
@@ -507,3 +508,8 @@ class ApplicationDecision(_Base):
 
     apply: bool
     reason: _typing.Optional[str] = _Field(default="")
+
+
+class StepText(_Base):
+
+    text: str

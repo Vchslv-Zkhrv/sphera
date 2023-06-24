@@ -6,6 +6,7 @@ import sqlalchemy.orm as _orm
 from sqlalchemy import func as _func
 import passlib.hash as _hash
 import pydantic as _pydantic
+from loguru import logger as _logger
 
 import database as _database
 import models as _models
@@ -603,11 +604,13 @@ async def create_course(
     se.commit()
     se.refresh(course)
     for tag in tags:
-        se.add(_models.CompanySpecializations(
+        se.add(_models.CourseTags(
             specialization_id=tag.id,
             course_id=course.id
         ))
         se.commit()
+    se.refresh(course)
+    return course
 
 
 async def create_lesson(
@@ -615,11 +618,83 @@ async def create_lesson(
         data: _schemas.LessonCreate,
         se: _orm.Session
 ):
-    se.add(_models.Lesson(
+    lesson = _models.Lesson(
         name=data.name,
         duration=data.duration,
         description=data.description,
         course_id=course.id,
         number=data.number
-    ))
+    )
+    se.add(lesson)
     se.commit()
+    se.refresh(lesson)
+    return lesson
+
+
+def get_course_model(
+        id: int,
+        se: _orm.Session
+):
+    course = se.get(_models.Course, id)
+    if not course:
+        raise _fastapi.HTTPException(404, "No such course")
+    course.views += 1
+    se.commit()
+    se.refresh(course)
+    return course
+
+
+async def get_course(
+        id: int,
+        se: _orm.Session
+):
+    course = get_course_model(id, se)
+    if course.author.role == "teacher":
+        author = _schemas.TeacherShort(
+            id=course.author.id,
+            fname=course.author.fname,
+            lname=course.author.lname,
+            sname=course.author.sname,
+            company=course.author.teacher.company.name
+        )
+    else:
+        author = _schemas.StudentShort.from_orm(course.author)
+    return _schemas.Course(
+        id=id,
+        name=course.name,
+        description=course.description,
+        author=author,
+        date_created=course.date_created,
+        date_updated=course.date_updated,
+        views=course.views,
+        tags=list(_schemas.Specialization.from_orm(t.specialization) for t in course.tags),
+        lessons=_pydantic.parse_obj_as(_typing.List[_schemas.LessonShort], course.lessons),
+    )
+
+
+async def check_cookie_and_update_user_online(
+        cookie: str,
+        se: _orm.Session
+):
+    if not cookie:
+        return
+    try:
+        user = await get_student_account(cookie, se)
+        user.date_online = _dt.datetime.utcnow()
+        se.commit()
+        se.refresh(user)
+    except _cookies.CookieError:
+        return
+    except Exception as e:
+        _logger.error(f"cannot update user date online {e=}")
+
+
+async def get_lesson(
+        course: _models.Course,
+        number: int
+):
+    for lesson in course.lessons:
+        if number==lesson.number:
+            return lesson
+    else:
+        raise _fastapi.HTTPException(404, "No such lesson")

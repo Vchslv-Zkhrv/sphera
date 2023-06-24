@@ -196,7 +196,7 @@ async def get_company_public_data(
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     logger.debug("")
-    return await _services.get_company(id, session)
+    return _services.get_company(id, session)
 
 
 @fastapi.post("/app/teachers", status_code=204)
@@ -348,6 +348,31 @@ async def apply_for_company_registration(application: _schemas.CreateCompanyAppl
     await _applications.add_create_company_application(application)
 
 
+@fastapi.post("/api/applications/tags/create", status_code=204)
+async def apply_for_tags_registration(application: _schemas.CreateTagApplicationCreate):
+    await _applications.add_create_tags_application(application)
+
+
+@fastapi.post("/api/applications/companies/{id}/update", status_code=204)
+async def apply_for_company_update(
+        id: int,
+        application: _schemas.UpdateCompanyApplicationCreate,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    company = _services.get_company(id, session)
+    await _applications.add_update_company_application(application, company)
+
+
+@fastapi.post("/api/applications/companies/{id}/delete", status_code=204)
+async def apply_for_company_deletion(
+        id: int,
+        application: _schemas.DeleteCompanyApplicationCreate,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    company = _services.get_company(id, session)
+    await _applications.add_delete_company_application(application, company)
+
+
 @fastapi.get("/api/applications/all", response_model=_schemas.AllApplications)
 async def get_all_applications(
     user: usertype = None,
@@ -377,17 +402,91 @@ async def respond_to_application(
         await _cookies.check_admin_cookie(user, session)
     except _cookies.CookieError:
         return _cookies.get_unsign_response()
-    application: _schemas.CreateCompanyApplication = await _applications.get_application(atype, id)
-    if not application:
-        raise _fastapi.HTTPException(404, "no such application")
-    _applications.delete_application(atype, id)
-    if decision.apply:
+
+    if atype == "create_company":
+        application: _schemas.CreateCompanyApplication = await _applications.get_application(atype, id)
+        if not application:
+            raise _fastapi.HTTPException(404, "no such application")
+        await _applications.delete_application(atype, id)
+        if decision.apply:
+            company = await _services.get_company_by_name(application.name, session)
+            await _emails.send_create_company_success_email(application.applicant_email, company)
+        else:
+            await _emails.send_create_company_reject_email(application.applicant_email, decision.reason)
+    elif atype == "create_tags":
+        application: _schemas.CreateTagApplication = await _applications.get_application(atype, id)
+        if not application:
+            raise _fastapi.HTTPException(404, "no such application")
+        await _applications.delete_application(atype, id)
+        if decision.apply:
+            await _emails.send_create_tags_success_email(application.applicant_email)
+        else:
+            await _emails.send_create_tags_reject_email(application.applicant_email, decision.reason)
+
+    elif atype == "delete_company":
+        application: _schemas.DeleteCompanyApplication = await _applications.get_application(atype, id)
+        if not application:
+            raise _fastapi.HTTPException(404, "no such application")
+        await _applications.delete_application(atype, id)
+        if decision.apply:
+            await _emails.send_delete_company_success_email(application.applicant_email)
+        else:
+            await _emails.send_create_tags_reject_email(application.applicant_email, decision.reason)
+
+    elif atype == "update_company":
+        application: _schemas.UpdateCompanyApplication = await _applications.get_application(atype, id)
+        if not application:
+            raise _fastapi.HTTPException(404, "no such application")
+        await _applications.delete_application(atype, id)
         company = await _services.get_company_by_name(application.name, session)
-        await _emails.send_create_company_success_email(application.applicant_email, company)
-    else:
-        await _emails.send_create_company_reject_email(application.applicant_email, decision.reason)
+        if decision.apply:
+            await _emails.send_update_company_success_email(application.applicant_email, company)
+        else:
+            await _emails.send_update_company_reject_email(application.applicant_email, company, decision.reason)
 
 
 @fastapi.get("/api/tags/all", response_model=_typing.List[_schemas.Specialization])
 async def get_all_tags(session: _orm.Session = _fastapi.Depends(_services.get_db_session)):
     return await _services.get_all_tags(session)
+
+
+@fastapi.put("/api/companies/{id}", status_code=204)
+async def update_company(
+    id: int,
+    update: _schemas.CompanyUpdate,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    if not user:
+        return _cookies.get_unsign_response()
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    await _services.update_company(id, update, session)
+
+
+@fastapi.delete("/api/companies/{id}", status_code=204)
+async def delete_company(
+    id: int,
+    user: usertype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    if not user:
+        return _cookies.get_unsign_response()
+    try:
+        await _cookies.check_admin_cookie(user, session)
+    except _cookies.CookieError:
+        return _cookies.get_unsign_response()
+    await _services.drop_company(id, session)
+
+
+@fastapi.get("/api/companies/all/", response_model=_typing.List[_schemas.Company])
+async def get_all_companies(
+    page: int = 1,
+    pagesize: int = 20,
+    desc: bool = False,
+    sort: _schemas.companies_sort_types = "name",
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    return await _services.get_all_companies(page-1, pagesize, sort, desc, session)

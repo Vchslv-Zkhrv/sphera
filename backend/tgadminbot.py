@@ -1,11 +1,14 @@
-import telegram as _tg
+import telegram as _telegram
 from telegram import ext as _ext
 from passlib import hash as _hash
+import asyncio as _asyncio
+import datetime as _dt
 
 from config import TELEGRAM_ADMIN_BOT_TOKEN as _TOKEN, PASSWORD_SALT as _SALT
 import emoji as _emoji
-import database as _dt
+import time as _time
 import models as _models
+import tg as _tg
 
 
 """
@@ -15,7 +18,7 @@ import models as _models
 """
 
 
-async def on_start(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_start(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
     await context.bot.send_message(
@@ -25,7 +28,7 @@ async def on_start(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     await on_help(update, context)
 
 
-async def on_help(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_help(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
     await context.bot.send_message(
@@ -38,7 +41,7 @@ async def on_help(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
 """)
 
 
-async def on_add_admin(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_add_admin(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
     await context.bot.send_message(
@@ -55,7 +58,7 @@ async def on_add_admin(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TY
     )
 
 
-async def on_admmin_auth(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_admmin_auth(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     try:
         rows = text.split("\n")
@@ -109,7 +112,7 @@ async def on_admmin_auth(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_
         se.close()
 
 
-async def on_message(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_message(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
     text = update.message.text
@@ -127,7 +130,7 @@ async def on_message(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE
         )
 
 
-async def on_logout(update: _tg.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
+async def on_logout(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
     se = _dt.SessionLocal()
@@ -167,5 +170,11 @@ if __name__ == '__main__':
             run()
         except KeyboardInterrupt:
             exit(0)
+        except Exception as e:
+            text = \
+                f"{_emoji.WARNING} Телеграм-бот админов остановился {_emoji.WARNING}\n\n{e=}\n\n" + \
+                "Попытка повторного запуска через 60 секунд."
+            _asyncio.run(lambda: _tg.admin_broadcast(text))
+            _time.sleep(60)
         finally:
             run()

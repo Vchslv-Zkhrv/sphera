@@ -336,7 +336,7 @@ async def find_specializations(
     )
 
 
-async def get_company(
+def get_company(
         id: int,
         se: _orm.Session
 ):
@@ -507,4 +507,76 @@ async def get_all_tags(se: _orm.Session):
     return _pydantic.parse_obj_as(
         _typing.List[_schemas.Specialization],
         se.query(_models.Specialization).all()
+    )
+
+
+async def update_company(
+        id: int,
+        update: _schemas.CompanyUpdate,
+        se: _orm.Session
+):
+    company = se.get(_models.Company, id)
+    if not company:
+        raise _fastapi.HTTPException(404, "No such company")
+    if update.name:
+        company.name = update.name
+        se.commit()
+        se.refresh(company)
+    if update.contacts:
+        for oldc in company.contacts:
+            se.delete(oldc)
+            se.commit()
+        for new in update.contacts:
+            se.add(_models.CompanyContacts(kind=new.kind, value=new.value, company_id=company.id))
+            se.commit()
+    if update.tags:
+        new = list(se.query(_models.Specialization).filter_by(name=tag).first() for tag in update.tags)
+        if None in new:
+            raise _fastapi.HTTPException(404, "No such tag")
+        for olds in company.specializations:
+            se.delete(olds)
+            se.commit()
+        for n in new:
+            se.add(_models.CompanySpecializations(company_id=company.id, specialization_id=n.id))
+            se.commit()
+
+
+async def drop_company(
+        id: int,
+        se: _orm.Session
+):
+    company = se.get(_models.Company, id)
+    if not company:
+        raise _fastapi.HTTPException(404, "No such company")
+    if len(company.teachers) > 0:
+        raise _fastapi.HTTPException(409, "Unable delete an organization that has registered teachers")
+    for tag in company.specializations:
+        se.delete(tag)
+        se.commit()
+    for contact in company.contacts:
+        se.delete(contact)
+        se.commit()
+    se.delete(company)
+    se.commit()
+
+
+async def get_all_companies(
+        page: int,
+        pagesize: int,
+        sort: _schemas.companies_sort_types,
+        desc: bool,
+        se: _orm.Session
+):
+    sort_column = _models.Company.id if sort == "id" else _models.Company.name
+    sort_column = sort_column.desc() if desc else sort_column
+    return list(
+        get_company(company.id, se)
+        for company in
+        (
+            se
+            .query(_models.Company)
+            .order_by(sort_column)
+            .offset(page*pagesize)
+            .limit(pagesize)
+        )
     )

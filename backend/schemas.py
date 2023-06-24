@@ -9,6 +9,13 @@ pydantic - структуры, используемые в приложении
 
 """
 
+#
+#
+#
+# Пользовательские типы
+#
+#
+#
 
 users_roles = _typing.Literal["student", "teacher"]
 
@@ -57,6 +64,8 @@ static_templates = _typing.Literal[
     "account_not_activated",
     "internal_server_error"
 ]
+
+companies_sort_types = _typing.Literal["id", "name"]
 
 
 class _Base(_BM):
@@ -214,9 +223,9 @@ class CompanyCreate(_Base):
 
 class CompanyUpdate(_Base):
 
-    id: int
     name: _typing.Optional[str]
     tags: _typing.Optional[_typing.List[str]]
+    contacts: _typing.Optional[_typing.List[CompanyContactCreate]]
 
 
 class Course(_Base):
@@ -432,7 +441,7 @@ class _JsonApplicationBase(_ApplicationBase):
 
 class _TagApplicationBase(_ApplicationBase):
 
-    name: str
+    names: _typing.List[str]
 
 
 class CreateTagApplicationCreate(_TagApplicationBase):

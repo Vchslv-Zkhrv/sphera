@@ -502,6 +502,42 @@ async def get_course(
     return await _services.get_course(id, session)
 
 
+@fastapi.put("/api/courses/{id}", status_code=204)
+async def update_course(
+    id: int,
+    update: _schemas.CourseUpdate,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Изменить данные на страничке курса """
+    logger.debug("")
+    model, role = await _services.get_account_by_cookie(user, session)
+    if not role:
+        return _cookies.get_unsign_response()
+    course = _services.get_course_model(id, session)
+    if role != "admin" or course.author_id != model.id:
+        raise _fastapi.HTTPException(400, "Permission denied")
+    await _services.update_course(course, update, session)
+
+
+@fastapi.delete("/api/courses/{id}", status_code=204)
+async def delete_course(
+    id: int,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Удалить курс """
+    logger.debug("")
+    model, role = await _services.get_account_by_cookie(user, session)
+    if not role:
+        return _cookies.get_unsign_response()
+    course = _services.get_course_model(id, session)
+    if role != "admin" or course.author_id != model.id:
+        raise _fastapi.HTTPException(400, "Permission denied")
+    await _services.drop_course(course, session)
+    await _courses.drop_course(course.id)
+
+
 @fastapi.post("/api/courses/{id}/lessons", status_code=204)
 async def create_course_lesson(
     id: int,
@@ -640,25 +676,41 @@ async def get_lesson(
 async def update_lesson(
     id: int,
     number: int,
-    update: _schemas.CourseUpdate,
+    update: _schemas.LessonUpdate,
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     """ Редактирование уроков """
     logger.debug("")
 
-    if not user:
-        raise _fastapi.HTTPException(401, "Нет cookie")
-    try:
-        await _cookies.check_admin_cookie(user, session)
-    except _cookies.CookieError:
-        try:
-            usermodel = await _services.get_student_account(user, session)
-        except _cookies.CookieError:
-            return _cookies.get_unsign_response()
+    model, role = await _services.get_account_by_cookie(user, session)
+    if not role:
+        return _cookies.get_unsign_response()
 
     course = _services.get_course_model(id, session)
-    if course.author_id != usermodel.id:
+    if role != "admin" or course.author_id != model.id:
         raise _fastapi.HTTPException(400, "Permission denied")
     lesson = await _services.get_lesson_model(course, number)
     await _services.update_lesson(lesson, update, session)
+
+
+@fastapi.delete("/api/courses/{id}/lessons/{number}", status_code=204)
+async def delete_lesson(
+    id: int,
+    number: int,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Удаление уроков """
+    logger.debug("")
+
+    model, role = await _services.get_account_by_cookie(user, session)
+    if not role:
+        return _cookies.get_unsign_response()
+
+    course = _services.get_course_model(id, session)
+    if role != "admin" or course.author_id != model.id:
+        raise _fastapi.HTTPException(400, "Permission denied")
+    lesson = await _services.get_lesson_model(course, number)
+    await _services.drop_lesson(lesson, session)
+    await _courses.drop_lesson(lesson.course.id, lesson.number)

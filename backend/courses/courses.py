@@ -43,10 +43,10 @@ def is_step_initialized(course_id: int, lesson_number: int, step_number: int):
 
 
 def get_lesson_steps_numbers(course_id: int, lesson_number: int):
-    return list(map(
+    return list(set(map(
         lambda step: int(step.split(".")[0]),
         _os.listdir(f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}")
-    ))
+    )))
 
 
 async def initialize_step(course_id: int, lesson_number: int):

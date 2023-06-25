@@ -744,27 +744,20 @@ async def get_lesson(
 
 
 async def drop_lesson(
-        course: _models.Course,
-        number: int,
+        lesson: _models.Lesson,
         se: _orm.Session
 ):
-    for lesson in course.lessons:
-        if number == lesson.number:
-            model = lesson
-            break
-    else:
-        raise _fastapi.HTTPException(404, "No such lesson")
-    if True in tuple(p.session.active for p in model.progresses):
+    if True in tuple(p.session.active for p in lesson.progresses):
         raise _fastapi.HTTPException(423, "There are active sessions on this lesson")
     try:
-        for p in model.progresses:
+        for p in lesson.progresses:
             se.delete(p)
             se.commit()
-        se.delete(model)
+        se.delete(lesson)
         se.commit()
     except Exception as e:
-        _logger.error(f"unable to delete lesson {lesson.number} in course {course.id}: {e=}")
-        await _tg.error(f"Не удалось удалить урок {lesson.number} с курса {course.id}:\n\n{e=}")
+        _logger.error(f"unable to delete lesson {lesson.number} in course {lesson.course.id}: {e=}")
+        await _tg.error(f"Не удалось удалить урок {lesson.number} с курса {lesson.course.id}:\n\n{e=}")
         raise _fastapi.HTTPException(409, "Unable to delete")
 
 

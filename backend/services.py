@@ -441,7 +441,7 @@ async def get_all_teachers(se: _orm.Session):
             fname=teacher.user.fname,
             lname=teacher.user.lname,
             sname=teacher.user.sname,
-            company=teacher.company_name
+            company=teacher.company_name,
         )
         for teacher in
         se.query(_models.Teacher)
@@ -462,7 +462,8 @@ async def get_student_by_id(
         lname=model.lname,
         sname=model.sname,
         date_online=model.date_online,
-        activities=list(a.date for a in model.activities)
+        activities=list(a.date for a in model.activities),
+        telegram=model.telegram
     )
 
 
@@ -482,7 +483,8 @@ async def get_teacher_by_id(
         date_online=teacher.user.date_online,
         company=teacher.company.name,
         specializations=list(s.specialization.name for s in teacher.specializations),
-        activities=list(a.date for a in teacher.user.activities)
+        activities=list(a.date for a in teacher.user.activities),
+        telegram=teacher.user.telegram
     )
 
 

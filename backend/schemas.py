@@ -94,6 +94,7 @@ class _User(_Base):
     lname: str
     sname: _typing.Optional[str] = _Field(default="")
     date_online: _dt.datetime
+    telegram: _typing.Optional[int]
 
 
 class Student(_User):
@@ -400,7 +401,7 @@ class Message(_Base):
 class Admin(_Base):
 
     login: str
-    password: str
+    telegram: _typing.Optional[int]
 
 
 class Link(_Base):

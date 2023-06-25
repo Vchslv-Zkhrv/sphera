@@ -1,8 +1,16 @@
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import Admin from "./admin/Admin";
+import User from "./user/User";
 
 function App() {
   return (
-    <div className="App">
-    </div>
+    <BrowserRouter>
+        <Routes>
+            <Route path="/admin" element={<Admin/>}/>
+            <Route path="/" element={<User/>}/>
+            <Route path="*" element={<Navigate to="/"/>}/>
+        </Routes>
+    </BrowserRouter>
   );
 }
 

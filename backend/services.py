@@ -120,12 +120,38 @@ async def get_account_by_cookie(
                 return (None, None)
 
 
+def can_delete_student(user: _models.User):
+    return len(filter((lambda s: s.session.active),  user.sessions)) == 0
+
+
 async def drop_student(
-        cookie: str,
+        user: _models.User,
         se: _orm.Session
 ):
-    stud = await _cookies.check_user_cookie(cookie, se)
-    se.delete(stud)
+    if not can_delete_student(user):
+        raise _fastapi.HTTPException(423, "Cannot to delete user having active sessions")
+    for activity in user.activities:
+        se.delete(activity)
+        se.commit()
+    for hometask in user.hometasks:
+        se.delete(hometask)
+        se.commit()
+    for notification in user.notifications:
+        se.delete(notification)
+        se.commit()
+    for progress in user.progresses:
+        se.delete(progress)
+        se.commit()
+    for session in user.sessions:
+        se.delete(session)
+        se.commit()
+    for chat_membership in user.chats:
+        se.delete(chat_membership)
+        se.commit()
+    for group_membership in user.groups:
+        se.delete(group_membership)
+        se.commit()
+    se.delete(user)
     se.commit()
 
 
@@ -249,18 +275,6 @@ async def get_teacher_account(
     update_user_online(user, se)
     teacher = get_teacher(user.id, se)
     return (user, teacher)
-
-
-async def drop_teacher(
-        cookie: str,
-        se: _orm.Session
-):
-    user = await _cookies.check_user_cookie(cookie, se)
-    teacher = get_teacher(user.id, se)
-    se.delete(teacher)
-    se.commit()
-    se.delete(user)
-    se.commit()
 
 
 async def update_teacher(
@@ -452,17 +466,6 @@ async def get_student_by_id(
     )
 
 
-async def drop_student_by_id(
-        id: int,
-        se: _orm.Session
-):
-    user = se.query(_models.User).filter_by(id=id).filter_by(role="student").first()
-    if not user:
-        raise _fastapi.HTTPException(404, "No such user")
-    se.delete(user)
-    se.commit()
-
-
 async def get_teacher_by_id(
         id: int,
         se: _orm.Session
@@ -483,11 +486,33 @@ async def get_teacher_by_id(
     )
 
 
-async def drop_teacher_by_id(
-        id: int,
+def can_delete_teacher(teacher: _models.Teacher):
+    return (
+        len(teacher.groups) == 0
+        and
+        len(filter((lambda s: s.session.active),  teacher.user.sessions)) == 0
+        and
+        all((not session.session.active for session in group.sessions) for group in teacher.groups)
+    )
+
+
+async def drop_teacher(
+        teacher: _models.Teacher,
         se: _orm.Session
 ):
-    teacher = se.get(_models.Teacher, id)
+    if not can_delete_teacher(teacher):
+        raise _fastapi.HTTPException(423, "Cannot delete teacher with active sessions")
+    for group in teacher.groups:
+        for group_student in group.students:
+            se.delete(group_student)
+            se.commit()
+        for session in group.sessions:
+            se.delete(session)
+            se.commit()
+    for tag in teacher.specializations:
+        se.delete(tag)
+        se.commit()
+    await drop_student(teacher.user, se)
     se.delete(teacher)
     se.commit()
 

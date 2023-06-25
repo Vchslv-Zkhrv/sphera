@@ -30,6 +30,7 @@ logger.add("./logs/debug.log", rotation="1MB")
 
 @fastapi.head("/api/", status_code=204)
 async def handshake():
+    """ Проверка соединения """
     pass
 
 
@@ -87,10 +88,11 @@ async def delete_student_account(
 ):
     """ Удаление аккаунта студента """
     logger.debug("")
-    try:
-        await _services.drop_student(user, session)
-    finally:
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "student":
         return _cookies.get_unsign_response()
+    await _services.drop_student(model, session)
+    return _cookies.get_unsign_response(204)
 
 
 @fastapi.put("/api/students/me", status_code=204)
@@ -99,10 +101,13 @@ async def update_student_data(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Изменение данных аккаунта студента """
+    """
+    Изменение данных аккаунта студента.
+    Доступно только для владельца аккаунта
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
-    if role not in ("admin", "student"):
+    if role != "student":
         return _cookies.get_unsign_response()
     await _services.update_student(data, model, session)
     return await _cookies.get_signed_response(None, model, session, 204)
@@ -154,7 +159,10 @@ async def load_tags(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Добавление тегов профессий на сайт """
+    """
+    Добавление тегов профессий на сайт.
+    Доступно только для админов
+    """
     logger.debug("")
     _, role = await _services.get_account_by_cookie(user, session)
     if role != "admin":
@@ -182,7 +190,10 @@ async def regist_company(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Регистрация учебной огранизации """
+    """
+    Регистрация учебной огранизации.
+    Доступно только для админов
+    """
     logger.debug("")
     _, role = await _services.get_account_by_cookie(user, session)
     if role != "admin":
@@ -207,10 +218,11 @@ async def teacher_sign_up(
     data: _schemas.TeacherCreate,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Регситрация аккаунта учителя """
+    """ Регистрация аккаунта учителя """
     logger.debug("")
-    usr, _ = await _services.create_teacher(data, session)
-    await _cookies.get_signed_response(None, usr, session, 204)
+    user, _ = await _services.create_teacher(data, session)
+    link = await _links.create_verify_email_link(user, session)
+    await _emails.send_verification_email(link, user)
 
 
 @fastapi.get("/app/teachers/me", response_model=_schemas.Teacher)
@@ -227,16 +239,42 @@ async def teacher_sign_in(
     return await _cookies.get_signed_response(data, model, session)
 
 
+@fastapi.put("/app/teachers/me", status_code=204)
+async def update_teacher(
+    update: _schemas.TeacherUpdate,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Редактирование аккаунта учителя """
+    logger.debug("")
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        return _cookies.get_unsign_response()
+    await _services.update_teacher(update, model.user, model, session)
+
+
+@fastapi.delete("/app/teachers/me", status_code=204)
+async def delete_teacher_account(
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Удаление аккаунта учителя """
+    logger.debug("")
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        return _cookies.get_unsign_response()
+    await _services.drop_teacher(model, session)
+    _cookies.get_unsign_response(204)
+
+
 @fastapi.get("/api/admin/students/all", response_model=_typing.List[_schemas.StudentShort])
 async def get_all_students(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Получить всех зарегистрированные аккаунты студентов """
+    """Получить все зарегистрированные аккаунты студентов """
     logger.debug("")
-    _, role = await _services.get_account_by_cookie(user, session)
-    if role != "admin":
-        return _cookies.get_unsign_response()
+    await _services.check_cookie_and_update_user_online(user, session)
     return await _services.get_all_students(session)
 
 
@@ -247,9 +285,7 @@ async def get_all_teachers(
 ):
     """ Получить всех зарегистрированные аккаунты учителей """
     logger.debug("")
-    _, role = await _services.get_account_by_cookie(user, session)
-    if role != "admin":
-        return _cookies.get_unsign_response()
+    await _services.check_cookie_and_update_user_online(user, session)
     return await _services.get_all_teachers(session)
 
 
@@ -263,6 +299,17 @@ async def get_teacher_account(
     logger.debug("")
     await _services.check_cookie_and_update_user_online(user, session)
     return await _services.get_teacher_by_id(id, session)
+
+
+@fastapi.post("/api/teachers/me", response_model=_schemas.Teacher)
+async def teacher_auth(
+    data: _schemas.AuthSchema,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Вход в аккаунт учителя по логину и паролю """
+    logger.debug("")
+    user, teacher = await _services.auth_teacher(data.login, data.password, session)
+    return _services.teacher_model_to_schema(user, teacher)
 
 
 @fastapi.get("/api/students/{id}", response_model=_schemas.StudentFull)
@@ -348,7 +395,10 @@ async def get_all_applications(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Получение всех необработанных заявок """
+    """
+    Получение всех необработанных заявок.
+    Только для админов
+    """
     logger.debug("")
     _, role = await _services.get_account_by_cookie(user, session)
     if role != "admin":
@@ -376,6 +426,8 @@ async def respond_to_application(
     В случае, если было решено принять заявку,
     сначала должен поступить запрос от администратора на выполнение соответствуших действий,
     и только затем вызван данный метод, чтобы оповестить заявителя
+
+    (только для админов)
     """
 
     _, role = await _services.get_account_by_cookie(user, session)
@@ -441,7 +493,10 @@ async def update_company(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Изменение данных образовательной организации """
+    """
+    Изменение данных образовательной организации.
+    Только для админов
+    """
     _, role = await _services.get_account_by_cookie(user, session)
     if role != "admin":
         return _cookies.get_unsign_response()
@@ -454,7 +509,10 @@ async def delete_company(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Удаление образователььной организации """
+    """
+    Удаление образовательной организации.
+    Только для админов
+    """
     _, role = await _services.get_account_by_cookie(user, session)
     if role != "admin":
         return _cookies.get_unsign_response()
@@ -481,7 +539,10 @@ async def create_course(
         user: cookietype = None,
         session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Создание курса """
+    """
+    Создание курса.
+    Доступно для студентов и учителей, но не для админов
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if role not in ("student", "teacher"):
@@ -509,7 +570,10 @@ async def update_course(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Изменить данные на страничке курса """
+    """
+    Изменить данные на страничке курса.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if not role:
@@ -526,7 +590,10 @@ async def delete_course(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Удалить курс """
+    """
+    Удалить курс.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if not role:
@@ -545,7 +612,10 @@ async def create_course_lesson(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Добавление урока к курсу """
+    """
+    Добавление урока к курсу.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if role not in ("student", "teacher"):
@@ -564,7 +634,10 @@ async def create_course_step(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Добавление шага к уроку """
+    """
+    Добавление шага к уроку.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if role not in ("student", "teacher"):
@@ -587,7 +660,10 @@ async def set_step_text(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Загрузка текста для шага урока """
+    """
+    Загрузка текста для шага урока.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
 
     model, role = await _services.get_account_by_cookie(user, session)
@@ -611,7 +687,10 @@ async def load_step_image(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Загрузка изображения для урока """
+    """
+    Загрузка изображения для урока.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
     if not role:
@@ -680,7 +759,10 @@ async def update_lesson(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Редактирование уроков """
+    """
+    Редактирование уроков.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
 
     model, role = await _services.get_account_by_cookie(user, session)
@@ -701,7 +783,10 @@ async def delete_lesson(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
-    """ Удаление уроков """
+    """
+    Удаление уроков.
+    Доступно для админов и автора курса
+    """
     logger.debug("")
 
     model, role = await _services.get_account_by_cookie(user, session)

@@ -34,7 +34,7 @@ async def handshake():
     pass
 
 
-@fastapi.post("/app/students", status_code=204)
+@fastapi.post("/api/students", status_code=204)
 async def student_sign_up(
     data: _schemas.StudentCreate,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -46,7 +46,7 @@ async def student_sign_up(
     await _emails.send_verification_email(link, user)
 
 
-@fastapi.get("/app/students/me", response_model=_schemas.Student)
+@fastapi.get("/api/students/me", response_model=_schemas.Student)
 async def student_sign_in(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -72,7 +72,7 @@ async def student_auth(
     return await _cookies.get_signed_response(stud, usr, session)
 
 
-@fastapi.delete("/app/students/me/cookie", status_code=401)
+@fastapi.delete("/api/students/me/cookie", status_code=401)
 async def student_logout():
     """ Выход из аккаунта студента """
     logger.debug("")
@@ -213,7 +213,7 @@ async def get_company(
     return _services.get_company(id, session)
 
 
-@fastapi.post("/app/teachers", status_code=204)
+@fastapi.post("/api/teachers", status_code=204)
 async def teacher_sign_up(
     data: _schemas.TeacherCreate,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -225,7 +225,7 @@ async def teacher_sign_up(
     await _emails.send_verification_email(link, user)
 
 
-@fastapi.get("/app/teachers/me", response_model=_schemas.Teacher)
+@fastapi.get("/api/teachers/me", response_model=_schemas.Teacher)
 async def teacher_sign_in(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)
@@ -239,7 +239,7 @@ async def teacher_sign_in(
     return await _cookies.get_signed_response(data, model, session)
 
 
-@fastapi.put("/app/teachers/me", status_code=204)
+@fastapi.put("/api/teachers/me", status_code=204)
 async def update_teacher(
     update: _schemas.TeacherUpdate,
     user: cookietype = None,
@@ -253,7 +253,7 @@ async def update_teacher(
     await _services.update_teacher(update, model.user, model, session)
 
 
-@fastapi.delete("/app/teachers/me", status_code=204)
+@fastapi.delete("/api/teachers/me", status_code=204)
 async def delete_teacher_account(
     user: cookietype = None,
     session: _orm.Session = _fastapi.Depends(_services.get_db_session)

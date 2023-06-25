@@ -95,10 +95,11 @@ class _User(_Base):
     sname: _typing.Optional[str] = _Field(default="")
     date_online: _dt.datetime
     telegram: _typing.Optional[int]
+    role: users_roles
 
 
 class Student(_User):
-    pass
+    role: _typing.Literal["student"]
 
 
 class StudentUpdate(_Base):
@@ -116,11 +117,11 @@ class Teacher(_User):
     company: str
     specializations: _typing.List[str]
     bio: _typing.Optional[str] = _Field(default="")
+    role: _typing.Literal["teacher"]
 
 
 class SqlUser(_User):
 
-    role: users_roles
     password: str
     date_created: _dt.datetime
 
@@ -185,7 +186,7 @@ class StudentFull(Student, _UserFull):
     pass
 
 
-class TeacherFull(Teacher, _UserFull):
+class TeacherFull(_UserFull, Teacher):
     pass
 
 

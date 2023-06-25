@@ -422,7 +422,8 @@ def teacher_model_to_schema(
         company=teacher.company.name,
         specializations=list(
             s.specialization.name for s in teacher.specializations
-        )
+        ),
+        role="teacher"
     )
 
 
@@ -463,7 +464,8 @@ async def get_student_by_id(
         sname=model.sname,
         date_online=model.date_online,
         activities=list(a.date for a in model.activities),
-        telegram=model.telegram
+        telegram=model.telegram,
+        role="student"
     )
 
 
@@ -484,7 +486,8 @@ async def get_teacher_by_id(
         company=teacher.company.name,
         specializations=list(s.specialization.name for s in teacher.specializations),
         activities=list(a.date for a in teacher.user.activities),
-        telegram=teacher.user.telegram
+        telegram=teacher.user.telegram,
+        role="teacher"
     )
 
 

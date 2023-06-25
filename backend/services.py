@@ -14,6 +14,7 @@ import schemas as _schemas
 from config import PASSWORD_SALT
 import cookies as _cookies
 from courses import courses as _courses
+import tg as _tg
 
 
 """
@@ -94,6 +95,29 @@ async def get_student_account(
     stud = await _cookies.check_user_cookie(cookie, se)
     update_user_online(stud, se)
     return stud
+
+
+async def get_account_by_cookie(
+        cookie: str,
+        se: _orm.Session
+):
+    if not cookie:
+        return (None, None)
+    try:
+        admin = await _cookies.check_admin_cookie(cookie, se)
+        return (admin, "admin")
+    except _cookies.CookieError:
+        try:
+            student = await get_student_account(cookie, se)
+            update_user_online(student, se)
+            return (student, "student")
+        except _cookies.CookieError:
+            try:
+                teacher = await get_teacher_account(cookie, se)
+                update_user_online(teacher[0], se)
+                return (teacher[1], "teacher")
+            except _cookies.CookieError:
+                return (None, None)
 
 
 async def drop_student(
@@ -551,7 +575,7 @@ async def drop_company(
     if not company:
         raise _fastapi.HTTPException(404, "No such company")
     if len(company.teachers) > 0:
-        raise _fastapi.HTTPException(409, "Unable delete an organization that has registered teachers")
+        raise _fastapi.HTTPException(423, "Unable delete an organization that has registered teachers")
     for tag in company.specializations:
         se.delete(tag)
         se.commit()
@@ -687,7 +711,7 @@ async def check_cookie_and_update_user_online(
     except _cookies.CookieError:
         return
     except Exception as e:
-        _logger.error(f"cannot update user date online {e=}")
+        _logger.warning(f"cannot update user date online {e=}")
 
 
 async def get_lesson_model(
@@ -730,3 +754,81 @@ async def drop_lesson(
             break
     else:
         raise _fastapi.HTTPException(404, "No such lesson")
+    if True in tuple(p.session.active for p in model.progresses):
+        raise _fastapi.HTTPException(423, "There are active sessions on this lesson")
+    try:
+        for p in model.progresses:
+            se.delete(p)
+            se.commit()
+        se.delete(model)
+        se.commit()
+    except Exception as e:
+        _logger.error(f"unable to delete lesson {lesson.number} in course {course.id}: {e=}")
+        await _tg.error(f"Не удалось удалить урок {lesson.number} с курса {course.id}:\n\n{e=}")
+        raise _fastapi.HTTPException(409, "Unable to delete")
+
+
+async def drop_course(
+        course: _models.Course,
+        se: _orm.Session
+):
+    for s in course.sessions:
+        if s.active:
+            raise _fastapi.HTTPException(423, "There are active sessions on this course")
+    try:
+        for ctag in course.tags:
+            se.delete(ctag)
+            se.commit()
+        for lessson in course.lessons:
+            se.delete(lessson)
+            se.commit()
+        se.delete(course)
+        se.commit()
+    except Exception as e:
+        _logger.error(f"cannot delete course {course.id}: {e=}")
+        await _tg.error(f"Не удалось удалить курс {course.id}\n\n{e=}")
+    _courses.drop_course(course.id)
+
+
+async def update_lesson(
+        lesson: _models.Lesson,
+        update: _schemas.LessonUpdate,
+        se: _orm.Session
+):
+    if update.name:
+        lesson.name = update.name
+        se.commit()
+        se.refresh(lesson)
+    if update.description:
+        lesson.description = update.description
+        se.commit()
+        se.refresh(lesson)
+    if update.duration:
+        lesson.duration = update.duration
+        se.commit()
+        se.refresh(lesson)
+
+
+async def update_course(
+        course: _models.Course,
+        update: _schemas.CourseUpdate,
+        se: _orm.Session
+):
+    if update.name:
+        course.name = update.name
+        se.commit()
+        se.refresh(course)
+    if update.description:
+        course.description = update.description
+        se.commit()
+        se.refresh(course)
+    if update.tags:
+        new = list(se.query(_models.Specialization).filter_by(name=tag).first() for tag in update.tags)
+        if None in new:
+            raise _fastapi.HTTPException(404, "No such tag")
+        for old in course.tags:
+            se.delete(old)
+            se.commit()
+        for n in new:
+            se.add(_models.CourseTags(course_id=course.id, specialization_id=n.id))
+            se.commit()

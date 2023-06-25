@@ -1,14 +1,15 @@
+import datetime as _dt
+
 import telegram as _telegram
 from telegram import ext as _ext
 from passlib import hash as _hash
-import asyncio as _asyncio
-import datetime as _dt
+from loguru import logger as _logger
 
 from config import TELEGRAM_ADMIN_BOT_TOKEN as _TOKEN, PASSWORD_SALT as _SALT
 import emoji as _emoji
 import time as _time
 import models as _models
-import tg as _tg
+import database as _db
 
 
 """
@@ -82,7 +83,7 @@ async def on_admmin_auth(update: _telegram.Update, context: _ext.ContextTypes.DE
             text="Введите пароль корректно"
         )
         return
-    se = _dt.SessionLocal()
+    se = _db.SessionLocal()
     try:
         admin = se.query(_models.Admin).filter_by(login=login).first()
         if not admin:
@@ -133,7 +134,7 @@ async def on_message(update: _telegram.Update, context: _ext.ContextTypes.DEFAUL
 async def on_logout(update: _telegram.Update, context: _ext.ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
-    se = _dt.SessionLocal()
+    se = _db.SessionLocal()
     try:
         admin = se.query(_models.Admin).filter_by(telegram=update.effective_chat.id).first()
         if not admin:
@@ -171,10 +172,6 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             exit(0)
         except Exception as e:
-            text = \
-                f"{_emoji.WARNING} Телеграм-бот админов остановился {_emoji.WARNING}\n\n{e=}\n\n" + \
-                "Попытка повторного запуска через 60 секунд."
-            _asyncio.run(lambda: _tg.admin_broadcast(text))
+            _logger.error(f"stopped {e=}")
             _time.sleep(60)
-        finally:
-            run()
+            _logger.debug("trying to restart")

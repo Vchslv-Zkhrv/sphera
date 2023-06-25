@@ -264,6 +264,13 @@ class CourseCreate(_Base):
     tags: _typing.List[str]
 
 
+class CourseUpdate(_Base):
+
+    name: _typing.Optional[str]
+    description: _typing.Optional[str]
+    tags: _typing.Optional[_typing.List[str]]
+
+
 class SqlLesson(_Base):
 
     id: int
@@ -291,6 +298,13 @@ class LessonCreate(_Base):
     name: str
     description: str
     duration: _dt.time
+
+
+class LessonUpdate(_Base):
+
+    name: _typing.Optional[str]
+    description: _typing.Optional[str]
+    duration: _typing.Optional[_dt.time]
 
 
 class CourseFull(Course):

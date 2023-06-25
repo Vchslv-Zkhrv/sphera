@@ -1,7 +1,11 @@
 import os as _os
+import shutil as _shutil
 
 import aiofiles as _aiofiles
 import fastapi as _fastapi
+from loguru import logger as _logger
+
+import tg as _tg
 
 
 """
@@ -140,3 +144,51 @@ async def drop_step_image(
         raise _fastapi.HTTPException(404, "No image attached to step")
     image_name = _find_step_image_name(course_id, lesson_number, step_number)
     _os.remove(f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}/{image_name}")
+
+
+async def drop_step(
+        course_id: int,
+        lesson_number: int,
+        step_number: int,
+):
+    if not is_step_initialized(course_id, lesson_number, step_number):
+        raise _fastapi.HTTPException(404, "No such lesson step")
+    image_name = _find_step_image_name(course_id, lesson_number, step_number)
+    if image_name:
+        try:
+            _os.remove(f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}/{image_name}")
+        except Exception as e:
+            _logger.error(f"unable to delete step image: {e=}")
+            await _tg.error(
+                f"Не удалось удалить картинку шага {step_number} урока {lesson_number} курса {course_id}: {e=}")
+            raise _fastapi.HTTPException(409, "Unable to delete step image")
+    try:
+        _os.remove(f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}/{step_number}.txt")
+    except Exception as e:
+        _logger.error(f"unable to delete step text: {e=}")
+        await _tg.error(
+            f"Не удалось удалить текст шага {step_number} урока {lesson_number} курса {course_id}:\n\n{e=}")
+        raise _fastapi.HTTPException(409, "Unable to delete step text")
+
+
+async def drop_lesson(
+        course_id: int,
+        lesson_number: int
+):
+    try:
+        _shutil.rmtree(f"{_os.getcwd()}/courses/courses/{course_id}/{lesson_number}")
+    except Exception as e:
+        _logger.error(f"Unable to delete lesson tree: {e=}")
+        await _tg.error(
+            f"Не удалось удалить дерево урока {lesson_number} курса {course_id}\n\n{e=}")
+        raise _fastapi.HTTPException(409, "Unable to delete lesson")
+
+
+async def drop_course(course_id: int):
+    try:
+        _shutil.rmtree(f"{_os.getcwd()}/courses/courses/{course_id}")
+    except Exception as e:
+        _logger.error(f"Unable to delete course tree: {e=}")
+        await _tg.error(
+            f"Не удалось удалить дерево курса {course_id}\n\n{e=}")
+        raise _fastapi.HTTPException(409, "Unable to delete course")

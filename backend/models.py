@@ -366,7 +366,7 @@ class ChatMembers(_db.Base):
 
     chat_id = _sql.Column(_sql.Integer, _sql.ForeignKey("chat.id"), primary_key=True)
     user_id = _sql.Column(_sql.Integer, _sql.ForeignKey("user.id"), primary_key=True)
-    admin = _sql.Column(_sql.Boolean, nullable=False    )
+    admin = _sql.Column(_sql.Boolean, nullable=False)
 
     chat: _orm.Mapped["Chat"] = \
         _orm.relationship(back_populates="members")

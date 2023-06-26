@@ -1,0 +1,32 @@
+.cloud {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    border-left: 1px solid rgb(200, 200, 200);
+}
+
+.header {
+    padding: 12px 12px 8px 12px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+.list::-webkit-scrollbar {
+    display: none;
+}
+
+.clear {
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    padding: 0 12px;
+    margin-bottom: 18px;
+}
+
+.clear:hover {
+    color: #00C89C;
+}

@@ -886,3 +886,17 @@ async def load_paragraph_image(
     if not role == "admin":
         return _cookies.get_unsign_response()
     await _news.upload_image(image, nid, pid)
+
+
+@fastapi.post("/api/courses/search", response_model=_typing.List[_schemas.CourseShort])
+async def search_courses(
+    tags: _typing.List[int],
+    page: int = 1,
+    pagesize: int = 20,
+    desc: bool = False,
+    sort: _schemas.course_search_sorts = "name",
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    return await _services.search_courses(tags, page, pagesize, desc, sort, session)

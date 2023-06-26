@@ -31,3 +31,17 @@ export interface INews {
     date: Date
     title: string
 }
+
+
+export interface ITag {
+    id: number
+    name: string
+}
+
+
+export interface ICourseCard {
+    id: number
+    name: string
+    views: number
+    tags: ITag[]
+}

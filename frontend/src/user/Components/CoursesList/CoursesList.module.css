@@ -1,0 +1,23 @@
+.list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+    gap: 48px;
+    padding: 12px;
+}
+
+.list::-webkit-scrollbar {
+    display: none;
+}
+
+.courseWithHr {
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.hr {
+    border: none;
+    border-bottom: 1px solid rgb(200, 200, 200);
+}

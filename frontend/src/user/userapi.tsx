@@ -26,8 +26,7 @@ export class UserApi {
         else {return [];}
     }
 
-    static getNews = 
-    async (id: number) => {
+    static getNews = async (id: number) => {
         const response = await fetch(
             `/api/feed/${id}`,
             {
@@ -39,6 +38,35 @@ export class UserApi {
             const data = await response.json()
             return data.paragraphs;
         }
+        else {return [];}
+    }
+
+    static getTags = async () => {
+        const response = await fetch(
+            "/api/tags/all",
+            {
+                "method": "GET",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        if (response.ok) {return await response.json();}
+        else {return [];}
+    }
+
+    static searchCourses = async (
+        tags: number[],
+        sort: string,
+        desc: boolean
+    ) => {
+        const response = await fetch(
+            `/api/courses/search?desc=${desc}&sort=${sort}`,
+            {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(tags)
+            }
+        )
+        if (response.ok) {return await response.json();}
         else {return [];}
     }
 

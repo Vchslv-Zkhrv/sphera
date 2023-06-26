@@ -1,0 +1,21 @@
+.explore {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+.nothing {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

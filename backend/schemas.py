@@ -53,6 +53,13 @@ email_templates = _typing.Literal[
     "create_tags_reject",
 ]
 
+course_search_sorts = _typing.Literal[
+    "random",
+    "name",
+    "views",
+    "date"
+]
+
 static_logos = _typing.Literal["logo.png", "alter-logo.png"]
 
 static_templates = _typing.Literal[
@@ -256,6 +263,8 @@ class CourseShort(_Base):
 
     id: int
     name: str
+    views: int
+    tags: _typing.List[Specialization]
 
 
 class CourseCreate(_Base):

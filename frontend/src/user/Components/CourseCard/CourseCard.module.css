@@ -1,0 +1,26 @@
+.card {
+    display: flex;
+    flex-direction: row;
+    padding: 12px;
+}
+
+.card:hover {
+    background-color: rgba(0, 200, 156, 0.2);
+}
+
+.tagsCloud {
+    margin-left: auto;
+    max-width: 50%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    display: block;
+    color: white;
+    background-color: rgb(30, 30, 30);
+    padding: 4px 8px;
+    height: min-content;
+}   

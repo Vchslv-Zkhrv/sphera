@@ -4,6 +4,7 @@ import fastapi as _fastapi
 import datetime as _dt
 import sqlalchemy.orm as _orm
 from sqlalchemy import func as _func
+import sqlalchemy as _sql
 import passlib.hash as _hash
 import pydantic as _pydantic
 from loguru import logger as _logger
@@ -856,3 +857,47 @@ async def update_course(
         for n in new:
             se.add(_models.CourseTags(course_id=course.id, specialization_id=n.id))
             se.commit()
+
+
+async def search_courses(
+        tags: _typing.List[int],
+        page: int,
+        pagesize: int,
+        desc: bool,
+        sort: _schemas.course_search_sorts,
+        se: _orm.Session
+):
+    if tags:
+        tags_models = (se.get(_models.Specialization, tid) for tid in tags)
+        courses_ids = set()
+        for t in tags_models:
+            courses_ids.update(ct.course_id for ct in t.courses)
+    sort_column: _sql.Column = {
+        "date": _models.Course.date_created,
+        "name": _models.Course.name,
+        "views": _models.Course.views,
+        "random": _func.random()
+    }[sort]
+    if desc and sort != "random":
+        sort_column = sort_column.desc()
+    models = (
+        filter(
+            (lambda model: (model.id in courses_ids) if tags else (True)),
+            (se
+             .query(_models.Course)
+             .order_by(sort_column)
+             .offset(pagesize*(page-1))
+             .limit(pagesize))
+        )
+    )
+    return list(
+        _schemas.CourseShort(
+            id=m.id,
+            name=m.name,
+            views=m.views,
+            tags=_pydantic.parse_obj_as(
+                _typing.List[_schemas.Specialization],
+                (t.specialization for t in m.tags)
+            ),
+        ) for m in models
+    )

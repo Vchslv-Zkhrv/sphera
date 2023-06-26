@@ -1,0 +1,13 @@
+
+.sort {
+    display: flex;
+    flex-direction: row;
+    gap: 12px
+}
+
+.wrapper {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap:4px;
+}

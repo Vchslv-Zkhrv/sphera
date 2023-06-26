@@ -13,7 +13,7 @@ import links as _links
 from applications import applications as _applications
 from staticpages import staticpages as _staticpages
 from courses import courses as _courses
-
+from news import news as _news
 
 """
 Точка входа в приложение. Принимает HTTP-запросы и отдает HTTP-ответы
@@ -90,9 +90,9 @@ async def student_auth(
     return await _cookies.get_signed_response(stud, usr, session)
 
 
-@fastapi.delete("/api/students/me/cookie", status_code=401)
-async def student_logout():
-    """ Выход из аккаунта студента """
+@fastapi.delete("/api/users/me/cookie", status_code=401)
+async def user_logout():
+    """ Выход из аккаунта пользователя """
     logger.debug("")
     resp = _fastapi.Response(status_code=401)
     resp.delete_cookie("user")
@@ -817,3 +817,72 @@ async def delete_lesson(
     lesson = await _services.get_lesson_model(course, number)
     await _services.drop_lesson(lesson, session)
     await _courses.drop_lesson(lesson.course.id, lesson.number)
+
+
+@fastapi.get("/api/feed", response_model=_typing.List[_schemas.ShortNews])
+async def get_feed(
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    return await _news.get_feed()
+
+
+@fastapi.get("/api/feed/{id}", response_model=_schemas.FullNews)
+async def get_news(
+        id: int,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    return await _news.get_news_full(id)
+
+
+@fastapi.get("/api/feed/{nid}/paragraphs/{pid}")
+async def get_paragraph_image(
+        nid: int,
+        pid: int,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    return await _news.get_paragraph_image(nid, pid)
+
+
+@fastapi.post("/api/feed", response_model=int)
+async def initialize_news(
+        data: _schemas.InitNews,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if not role == "admin":
+        return _cookies.get_unsign_response()
+    return await _news.init_news(data)
+
+
+@fastapi.post("/api/feed/{id}", response_model=int)
+async def load_paragraph(
+        id: int,
+        paragraph: _schemas.NewsParagraphCreate,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if not role == "admin":
+        return _cookies.get_unsign_response()
+    return await _news.load_paragraph(paragraph, id)
+
+
+@fastapi.post("/api/feed/{nid}/paragraphs/{pid}/image", status_code=204)
+async def load_paragraph_image(
+        nid: int,
+        pid: int,
+        image: _fastapi.UploadFile,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if not role == "admin":
+        return _cookies.get_unsign_response()
+    await _news.upload_image(image, nid, pid)

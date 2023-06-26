@@ -4,6 +4,7 @@ import { UserContext } from "../../usercontext";
 import Logo from "../UI/Logo";
 import {Link} from "react-router-dom"
 import NavButton from "../UI/NavButton";
+import ExpandButton from "../UI/ExpandButton";
 
 
 interface INavbarProps {
@@ -73,9 +74,6 @@ const Navbar:FC<INavbarProps> = (props) => {
                         to="/chat"
                     />
                 </li>
-            </ul>
-
-            <ul className={styles.bottom}>
                 <li className={styles.navbutton}>
                     <NavButton
                         text="О проекте Сфера"
@@ -94,7 +92,16 @@ const Navbar:FC<INavbarProps> = (props) => {
                         to="/exit"
                     />
                 </li>
-                
+            </ul>
+
+            <ul className={styles.bottom}>
+                <li className={styles.navbutton}>
+                    <ExpandButton
+                        color={user===null ? "main" : user.role==="student" ? "main" : "alter"}
+                        shrink={props.isShrinked}
+                        setShrink={props.shrink}
+                    />
+                </li>
             </ul>
 
         </nav>

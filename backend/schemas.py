@@ -529,3 +529,45 @@ class ApplicationDecision(_Base):
 class StepText(_Base):
 
     text: str
+
+
+#
+#
+#
+# Структуры новостей
+#
+#
+#
+
+
+class NewsParagraphCreate(_Base):
+
+    kind: _typing.Literal["plain text", "image src"]
+    content: _typing.Optional[str]
+
+
+class NewsParagraph(_Base):
+
+    id: int
+    kind: _typing.Literal["plain text", "image src"]
+    content: _typing.Optional[str]
+
+
+class InitNews(_Base):
+
+    title: str
+
+
+class ShortNews(_Base):
+
+    id: int
+    date: _dt.date
+    title: str
+
+
+class FullNews(_Base):
+
+    date: _dt.date
+    title: str
+    paragraphs: _typing.List[NewsParagraph]
+    id: int

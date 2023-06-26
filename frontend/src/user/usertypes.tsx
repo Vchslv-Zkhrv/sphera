@@ -17,3 +17,16 @@ export interface IUserContext {
     user: IUser | null
     setUser: (u: IUser) => void;
 }
+
+
+export interface INewsParagraph {
+    kind: "plain text" | "image src"
+    content: string
+}
+
+
+export interface INews {
+    date: Date
+    title: string
+    paragraphs: INewsParagraph[]
+}

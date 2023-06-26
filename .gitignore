@@ -13,3 +13,6 @@ backend/applications/companies
 backend/staticpages/__pycache__
 backend/courses/__pycache__
 backend/courses/courses
+backend/news/__pycache__
+backend/news/news
+backend/news/images

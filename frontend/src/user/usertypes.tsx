@@ -20,13 +20,14 @@ export interface IUserContext {
 
 
 export interface INewsParagraph {
+    id: number
     kind: "plain text" | "image src"
     content: string
 }
 
 
 export interface INews {
+    id: number
     date: Date
     title: string
-    paragraphs: INewsParagraph[]
 }

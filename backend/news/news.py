@@ -31,9 +31,9 @@ async def load_paragraph(paragraph: _schemas.NewsParagraphCreate, news_id: int):
         raise _fastapi.HTTPException(404, "no such news") 
     async with _aiofiles.open(f"{_os.getcwd()}/news/news/{news_id}.json", "r", encoding="utf-8") as file:
         schema = _schemas.FullNews.parse_raw(await file.read())
-    pid = max(p.id for p in schema.paragraphs) if schema.paragraphs else 1
+    pid = max(p.id for p in schema.paragraphs)+1 if schema.paragraphs else 1
     if paragraph.kind == "image src":
-        paragraph.content = f"api/news/{news_id}/paragraphs/{pid}/image"
+        paragraph.content = f"/api/feed/{news_id}/paragraphs/{pid}/image"
     fullp = _schemas.NewsParagraph.parse_obj({"id": pid, **paragraph.dict()})
     schema.paragraphs.append(fullp)
     async with _aiofiles.open(f"{_os.getcwd()}/news/news/{news_id}.json", "w", encoding="utf-8") as file:

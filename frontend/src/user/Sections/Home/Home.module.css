@@ -1,5 +1,12 @@
-.feed {
+.home {
     display: flex;
     flex-direction: column;
     padding: 24px;
+}
+
+.feed {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
 }

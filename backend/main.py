@@ -838,7 +838,7 @@ async def get_news(
     return await _news.get_news_full(id)
 
 
-@fastapi.get("/api/feed/{nid}/paragraphs/{pid}")
+@fastapi.get("/api/feed/{nid}/paragraphs/{pid}/image")
 async def get_paragraph_image(
         nid: int,
         pid: int,

@@ -108,14 +108,15 @@ async def get_account_by_cookie(
         return (admin, "admin")
     except _cookies.CookieError:
         try:
-            student = await get_student_account(cookie, se)
-            update_user_online(student, se)
-            return (student, "student")
+            user, teacher = await get_teacher_account(cookie, se)
+            print(user, teacher)
+            update_user_online(user, se)
+            return (teacher, "teacher")
         except _cookies.CookieError:
             try:
-                teacher = await get_teacher_account(cookie, se)
-                update_user_online(teacher[0], se)
-                return (teacher[1], "teacher")
+                student = await get_student_account(cookie, se)
+                update_user_online(student, se)
+                return (student, "student")
             except _cookies.CookieError:
                 return (None, None)
 
@@ -386,7 +387,7 @@ def get_company(
     return _schemas.Company(
         id=id,
         name=model.name,
-        teachers=model.teachers,
+        teachers=list(teacher_model_to_schema(teacher.user, teacher) for teacher in model.teachers),
         tags=list(s.specialization.name for s in model.specializations),
         contacts=list(_schemas.CompanyContact.from_orm(c) for c in model.contacts)
     )

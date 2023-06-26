@@ -46,6 +46,24 @@ async def student_sign_up(
     await _emails.send_verification_email(link, user)
 
 
+@fastapi.get("/api/users/me", response_model=_typing.Union[_schemas.Student, _schemas.Teacher])
+async def user_sign_in(
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    """ Вход в аккаунт любого пользователя по cookie """
+    logger.debug("")
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role not in ("student", "teacher") or not model:
+        return _cookies.get_unsign_response()
+    if role == "student":
+        data = _schemas.Student.from_orm(model)
+        return await _cookies.get_signed_response(data, model, session)
+    elif role == "teacher":
+        data = _services.teacher_model_to_schema(model.user, model)
+        return await _cookies.get_signed_response(data, model.user, session)
+
+
 @fastapi.get("/api/students/me", response_model=_schemas.Student)
 async def student_sign_in(
     user: cookietype = None,
@@ -233,10 +251,10 @@ async def teacher_sign_in(
     """ Вход в аккаунт учителя по cookie """
     logger.debug("")
     model, role = await _services.get_account_by_cookie(user, session)
-    if role != "teacher":
+    if role != "teacher" or not model:
         return _cookies.get_unsign_response()
-    data = _services.teacher_model_to_schema(model)
-    return await _cookies.get_signed_response(data, model, session)
+    data = _services.teacher_model_to_schema(model.user, model)
+    return await _cookies.get_signed_response(data, model.user, session)
 
 
 @fastapi.put("/api/teachers/me", status_code=204)
@@ -309,7 +327,7 @@ async def teacher_auth(
     """ Вход в аккаунт учителя по логину и паролю """
     logger.debug("")
     user, teacher = await _services.auth_teacher(data.login, data.password, session)
-    return _services.teacher_model_to_schema(user, teacher)
+    return await _cookies.get_signed_response(_services.teacher_model_to_schema(user, teacher), user, session)
 
 
 @fastapi.get("/api/students/{id}", response_model=_schemas.StudentFull)

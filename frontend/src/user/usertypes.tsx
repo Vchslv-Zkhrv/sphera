@@ -11,3 +11,9 @@ export interface IUser {
     specializations?: string[]
     bio?: string
 }
+
+
+export interface IUserContext {
+    user: IUser | null
+    setUser: (u: IUser) => void;
+}

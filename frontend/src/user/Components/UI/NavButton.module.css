@@ -1,0 +1,54 @@
+.link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 8px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    padding: 2px 12px;
+    text-decoration: none;
+}
+
+.main_checked {
+    background-color: #00C89C;
+}
+
+.main_uncheked {
+    background-color: #FFFFFF;
+}
+
+.alter_checked {
+    background-color: #FFFFFF;
+}
+
+.alter_unchecked {
+    background-color: #00929C;
+}
+
+.main_checked:hover {
+    background-color: rgba(0, 200, 156, 0.8);
+}
+
+.main_unchecked:hover {
+    background-color: rgba(0, 200, 156, 0.2);
+}
+
+.alter_checked:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.alter_unchecked:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.shrink {
+    width: 38px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 0px;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 4px;
+}

@@ -4,7 +4,7 @@ export class UserApi {
 
     static signIn = async(): Promise<IUser | null> => {
         const response = await fetch(
-            "/api/students/me",
+            "/api/users/me",
             {
                 "method": "GET",
                 "headers": {"Content-Type": "application/json"}

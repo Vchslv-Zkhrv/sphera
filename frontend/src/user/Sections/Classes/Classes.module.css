@@ -1,0 +1,37 @@
+.classes {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    width: 100%;
+}
+
+
+.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.groups {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 36px;
+    overflow-y: scroll;
+}
+
+.groups::-webkit-scrollbar {
+    display: none;
+}
+
+.groupWithHr {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hr {
+    border: none;
+    border-bottom: 1px solid rgb(200, 200, 200);
+}

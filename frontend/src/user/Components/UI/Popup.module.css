@@ -1,0 +1,25 @@
+.sea {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 950;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.island {
+    background-color: white;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.hide {
+    display: none;
+}

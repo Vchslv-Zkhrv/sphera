@@ -329,14 +329,12 @@ class Group(_Base):
     id: int
     name: str
     teacher: Teacher
-    students: _typing.List[Student]
+    students: _typing.List[StudentShort]
 
 
 class GroupCreate(_Base):
 
     name: str
-    teacher: int
-    students: _typing.List[int]
 
 
 class Session(_Base):

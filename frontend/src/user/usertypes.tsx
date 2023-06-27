@@ -45,3 +45,18 @@ export interface ICourseCard {
     views: number
     tags: ITag[]
 }
+
+
+export interface StudentShort {
+    id: number
+    fname: string
+    lname: string
+}
+
+
+export interface IGroup {
+    id: number
+    name: string
+    teacher: IUser
+    students: StudentShort[]
+}

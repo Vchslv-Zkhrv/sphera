@@ -890,13 +890,90 @@ async def load_paragraph_image(
 
 @fastapi.post("/api/courses/search", response_model=_typing.List[_schemas.CourseShort])
 async def search_courses(
-    tags: _typing.List[int],
-    page: int = 1,
-    pagesize: int = 20,
-    desc: bool = False,
-    sort: _schemas.course_search_sorts = "name",
-    user: cookietype = None,
-    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+        tags: _typing.List[int],
+        page: int = 1,
+        pagesize: int = 20,
+        desc: bool = False,
+        sort: _schemas.course_search_sorts = "name",
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
 ):
     await _services.check_cookie_and_update_user_online(user, session)
     return await _services.search_courses(tags, page, pagesize, desc, sort, session)
+
+
+@fastapi.get("/api/users/me/groups/", response_model=_typing.List[_schemas.Group])
+async def get_user_groups(
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role == "student":
+        return await _services.get_student_groups(model)
+    elif role == "teacher":
+        return await _services.get_teacher_groups(model)
+    else:
+        return _cookies.get_unsign_response()
+
+
+@fastapi.post("/api/groups/", status_code=204)
+async def create_group(
+        data: _schemas.GroupCreate,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        raise _fastapi.HTTPException(400, "Only teacher can create class")
+    await _services.create_group(data.name, model, session)
+
+
+@fastapi.get("/api/groups/{id}/link", response_model=str)
+async def create_join_group_link(
+        id: int,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        raise _fastapi.HTTPException(400, "Only teacher can add students to class")
+    group = _services.get_group_model(id, session)
+    if group.teacher_id != model.user.id:
+        return _cookies.get_unsign_response()
+    return await _links.create_join_group_link(group, session)
+
+
+@fastapi.get("/api/groups/join/{url}", status_code=204)
+async def join_group_via_link(
+        url: str,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "student":
+        raise _fastapi.HTTPException(400, "Only student can join class via link")
+    try:
+        await _links.join_group(url, model, session)
+    except _links.LinkJoinUseless:
+        resp = await _staticpages.get_link_join_useless_page()
+        resp.status_code = 400
+        return resp
+    except _links.LinkInvalidError:
+        resp = await _staticpages.get_link_invalid_page()
+        resp.status_code = 400
+        return resp
+
+
+@fastapi.delete("/api/groups/{gid}/students/{sid}", status_code=204)
+async def ban_student_from_group(
+        gid: int,
+        sid: int,
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        return _cookies.get_unsign_response()
+    student = _services.get_student_model(sid, session)
+    group = _services.get_group_model(gid, session)
+    await _services.ban_from_group(student, group, session)

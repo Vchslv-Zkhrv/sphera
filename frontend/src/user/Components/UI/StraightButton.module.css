@@ -1,0 +1,21 @@
+.main {
+    color: white;
+    background-color: #00C89C;
+    padding: 12px;
+    border: none;
+}
+
+.main:hover {
+    background-color: rgba(0, 200, 156, 0.8);
+}
+
+.alter {
+    color: white;
+    background-color: #00929C;
+    padding: 12px;
+    border: none;
+}
+
+.alter:hover {
+    background-color: rgba(0, 146, 156, 0.8);
+}

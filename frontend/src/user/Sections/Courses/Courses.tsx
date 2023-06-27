@@ -3,6 +3,7 @@ import {FC} from "react"
 
 
 const Courses:FC = () => {
+
     return (
         <section>
             Courses

@@ -107,13 +107,13 @@ async def get_account_by_cookie(
     try:
         admin = await _cookies.check_admin_cookie(cookie, se)
         return (admin, "admin")
-    except _cookies.CookieError:
+    except (_cookies.CookieError, AttributeError):
         try:
             user, teacher = await get_teacher_account(cookie, se)
             print(user, teacher)
             update_user_online(user, se)
             return (teacher, "teacher")
-        except _cookies.CookieError:
+        except (_cookies.CookieError, _fastapi.HTTPException):
             try:
                 student = await get_student_account(cookie, se)
                 update_user_online(student, se)
@@ -901,3 +901,85 @@ async def search_courses(
             ),
         ) for m in models
     )
+
+
+async def get_teacher_groups(
+        teacher: _models.Teacher,
+):
+    return list(
+        _schemas.Group(
+            id=group.id,
+            name=group.name,
+            students=list(_schemas.StudentShort.from_orm(student.student) for student in group.students),
+            teacher=teacher_model_to_schema(teacher=teacher, user=teacher.user)
+        )
+        for group in
+        teacher.groups
+    )
+
+
+async def get_student_groups(
+        user: _models.User
+):
+    return list(
+        _schemas.Group(
+            id=g.group.id,
+            name=g.group.name,
+            teacher=teacher_model_to_schema(g.group.teacher.user, g.group.teacher),
+            students=list(_schemas.StudentShort.from_orm(s.student) for s in g.group.students)
+        ) for g in user.groups
+    )
+
+
+async def create_group(
+        name: str,
+        teacher: _models.Teacher,
+        se: _orm.Session
+):
+    group = _models.Group(
+        name=name,
+        teacher_id=teacher.user.id
+    )
+    se.add(group)
+    se.commit()
+    se.refresh(group)
+
+
+def get_group_model(
+        id: int,
+        se: _orm.Session
+):
+    group = se.get(_models.Group, id)
+    if not group:
+        raise _fastapi.HTTPException(404, "no such group")
+    return group
+
+
+async def ban_from_group(
+        student: _models.User,
+        group: _models.Group,
+        se: _orm.Session
+):
+    gs = (
+        se
+        .query(_models.GroupStudents)
+        .filter_by(group_id=group.id)
+        .filter_by(student_id=student.id)
+        .first()
+    )
+    if not gs:
+        raise _fastapi.HTTPException(400, "student not in group")
+    se.delete(gs)
+    se.commit()
+
+
+def get_student_model(
+        id: int,
+        se: _orm.Session
+):
+    user = se.get(_models.User, id)
+    if not user:
+        raise _fastapi.HTTPException(404, "no such user")
+    if user.role != "student":
+        raise _fastapi.HTTPException(400, "user not a student")
+    return user

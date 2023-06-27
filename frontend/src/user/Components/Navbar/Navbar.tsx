@@ -5,6 +5,7 @@ import Logo from "../UI/Logo";
 import {Link} from "react-router-dom"
 import NavButton from "../UI/NavButton";
 import ExpandButton from "../UI/ExpandButton";
+import SignSuggestion from "../SignSuggestion/SignSuggestion";
 
 
 interface INavbarProps {
@@ -23,6 +24,13 @@ const Navbar:FC<INavbarProps> = (props) => {
             user.role == "student" ?
             styles.studentNav: styles.teacherNav
         }>
+            {
+                user===null
+                ?
+                <SignSuggestion/>
+                :
+                <></>
+            }
 
             <Link to="/" style={{textDecoration: "none"}}>
                 <Logo shrink={props.isShrinked} props={{className: props.isShrinked ? styles.logo_shrinked : styles.logo}} />

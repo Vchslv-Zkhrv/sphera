@@ -15,7 +15,7 @@ export interface IUser {
 
 export interface IUserContext {
     user: IUser | null
-    setUser: (u: IUser) => void;
+    setUser: (u: IUser | null) => void;
 }
 
 

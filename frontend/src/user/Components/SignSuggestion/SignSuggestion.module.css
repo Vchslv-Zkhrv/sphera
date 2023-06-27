@@ -1,0 +1,27 @@
+.island {
+    position: fixed;
+    z-index: 999;
+    background-color: white;
+    right: 24px;
+    bottom: 24px;
+}
+
+.button {
+    background-color: white;
+    border: 1px solid rgb(200, 200, 200);
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px;
+    width: 100%;
+}
+
+.button:last-of-type {
+    border-top: none;
+}
+
+.button:hover {
+    background-color: rgba(0, 200, 156, 0.2);
+}

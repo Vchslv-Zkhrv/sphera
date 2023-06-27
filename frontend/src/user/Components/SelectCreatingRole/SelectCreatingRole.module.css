@@ -1,0 +1,13 @@
+.roles {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 36px 0px 12px 0px;
+}
+
+.exit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}

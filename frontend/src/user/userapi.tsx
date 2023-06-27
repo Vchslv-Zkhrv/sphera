@@ -117,6 +117,48 @@ export class UserApi {
                 "headers": {"Content-Type": "application/json"}
             }
         )
-    }   
+    }
+
+    static logout = async () => {
+        await fetch(
+            "/api/users/me/cookie",
+            { "method": "DELETE", }
+        )
+    }
+
+    static auth = async (login: string, password: string, role: "student" | "teacher")  => {
+        const response = await fetch(
+            role==="student" ? "/api/students/me" : "/api/teachers/me",
+            {
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": JSON.stringify({login, password})
+            }
+        );
+        if (response.ok) {
+            return await response.json()
+        }
+        else {
+            return null;
+        }
+    }
+
+    static signupStudent = async (
+        email: string,
+        password: string,
+        fname: string,
+        lname: string,
+        sname: string
+    ) => {
+        const response = await fetch(
+            "/api/students",
+            {
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": JSON.stringify({email, password, fname, lname, sname})
+            }
+        );
+        return response.status
+    }
 
 }

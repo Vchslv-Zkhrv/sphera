@@ -1,0 +1,22 @@
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 300px;
+    margin: 24px 0px;   
+    width: 100%
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.form h4, .form p {
+    width: 100%;
+    text-align: center;
+} 

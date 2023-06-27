@@ -1,0 +1,21 @@
+.input {
+    padding: 12px;
+    color: rgb(30, 30, 30);
+    background-color: #fff;
+    border: 1px solid rgb(200, 200, 200);
+}
+
+.inputCorrect {
+    padding: 12px;
+    color: rgb(30, 30, 30);
+    background-color: #fff;
+    border: 1px solid #00C89C;;
+}
+
+.inputIncorrect {
+    padding: 12px;
+    color: rgb(30, 30, 30);
+    background-color: #fff;
+    border: 1px solid #ff5500;;
+}
+

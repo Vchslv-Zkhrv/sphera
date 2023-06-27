@@ -12,16 +12,9 @@ export const UserProvider: FC<PropsWithChildren> = ({children}) => {
 
     const fetchUser = async () => {
         setUser(await UserApi.signIn())
-        if (user!==null) {
-            localStorage.setItem("user", JSON.stringify(user))
-        }
     }
 
     useEffect(() => {
-        const localUser = localStorage.getItem("user")
-        if (localUser!==null) {
-            setUser(JSON.parse(localUser))
-        }
         fetchUser()
     }, [])
 

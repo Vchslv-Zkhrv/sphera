@@ -210,6 +210,12 @@ class CompanyContactCreate(_Base):
     value: str
 
 
+class CompanyShort(_Base):
+
+    name: str
+    id: int
+
+
 class Company(_Base):
 
     id: int
@@ -300,7 +306,7 @@ class Step(_Base):
 
 class LessonFull(SqlLesson):
 
-    steps: _typing.List[str]
+    steps: _typing.List[int]
 
 
 class LessonCreate(_Base):
@@ -345,21 +351,11 @@ class Session(_Base):
     active: bool
 
 
-class GroupSession(Session):
-
-    group: Group
-
-
-class IndividualSession(Session):
-
-    student: StudentShort
-
-
 class Hometask(_Base):
 
     id: int
     description: str
-    session: GroupSession
+    session: Session
     student: StudentShort
     date_given: _dt.datetime
     date_done: _typing.Optional[_dt.datetime] = None

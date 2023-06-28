@@ -7,7 +7,6 @@ import IndicatorInput from "../UI/IndicatorInput"
 import Loading from "../Loading/Loading"
 import { UserApi } from "../../userapi"
 
-
 interface IRegistProps {
     visible: boolean
     setVisible: (b: boolean) => void
@@ -31,7 +30,7 @@ const StudentRegistPopup:FC<IRegistProps> = ({setVisible, visible}) => {
 
     const [status, setStatus] = useState<number | null>(null);
     const [fetching, setFetching] = useState<boolean>(false);
-
+    const [successMessage, setSccessMessage] = useState<string>("");
     
     const handleSignUp = async (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -42,7 +41,7 @@ const StudentRegistPopup:FC<IRegistProps> = ({setVisible, visible}) => {
                 setErrorMessage("Логин занят")
             }
             if (status == 204) {
-                
+                setSccessMessage("На вышу элетронную почту было отправлено письмо для активации аккаунта")
             }
             setFetching(false)
         }
@@ -61,6 +60,8 @@ const StudentRegistPopup:FC<IRegistProps> = ({setVisible, visible}) => {
         setFname("");
         setLname("");
         setSname("");
+        setStatus(null);
+        setSccessMessage("");
     }, [visible])
 
 
@@ -103,9 +104,25 @@ const StudentRegistPopup:FC<IRegistProps> = ({setVisible, visible}) => {
         <>
             <Popup visible={visible} setVisible={setVisible}>
                 <form className={styles.form}>
-                    <h4>Регистрация</h4>
+                    <h4>
+                        {
+                            status==204 ?
+                            "Успешно" :
+                            "Регистрация"
+                        }
+                    </h4>
                     <p>{errorMessage}</p>
-                    <div className={styles.fields}>
+                    <p className={styles.success}>
+                        {
+                            status==204 ?
+                            "На вашу электронную почту было отправлено письмо для активации аккаунта" :
+                            ""
+                        }
+                    </p>
+                    {
+                        status===204 ? <></> 
+                        :
+                        <div className={styles.fields}>
                         <IndicatorInput
                             type_="text"
                             value={login}
@@ -149,14 +166,21 @@ const StudentRegistPopup:FC<IRegistProps> = ({setVisible, visible}) => {
                             isCorrect={confirmationPasswordCorrect}
                             />
                     </div>
-                    <div className={styles.buttons}>
+                }
+                {
+                    status===204 ? 
+                        <div className={styles.buttons}>
+                        <DimmedButton text="Выйти" onClick={handleClose} />
+                        </div>
+                    :
+                        <div className={styles.buttons}>
                         <StraightButton text="Создать аккаунт" onClick={handleSignUp}/>
                         <DimmedButton text="Выйти" onClick={handleClose} />
-                    </div>
-                </form>
-            </Popup>
+                        </div>
+                }
+                    </form>
+                </Popup>
             <Loading setVisible={setFetching} visible={fetching}/>
-
         </>
     )
 }

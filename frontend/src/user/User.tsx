@@ -12,6 +12,7 @@ import Courses from "./Sections/Courses/Courses";
 import About from "./Sections/About/About";
 import styles from "./User.module.css";
 import ExitAccount from "./Sections/ExitAccount";
+import CoursePage from "./Components/CoursePage/CoursePage";
 
 
 const User:FC = () => {
@@ -36,6 +37,7 @@ const User:FC = () => {
                     <Route path="/courses" element={<Courses/>}/>
                     <Route path="/about" element={<About/>}/>
                     <Route path="/exit" element={<ExitAccount/>}/>
+                    <Route path="/courses/:courseId" element={<CoursePage/>}/>
                 </Routes>
             </main> 
         </UserProvider>

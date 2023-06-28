@@ -1,5 +1,4 @@
 backend/venv
-backend/data
 .vscode
 backend/__pycache__
 backend/config.py
@@ -8,11 +7,6 @@ frontend/node_modules
 frontend/package-lock.json
 backend/emails/__pycache__
 backend/applications/__pycache__
-backend/applications/tags
-backend/applications/companies
 backend/staticpages/__pycache__
 backend/courses/__pycache__
-backend/courses/courses
 backend/news/__pycache__
-backend/news/news
-backend/news/images

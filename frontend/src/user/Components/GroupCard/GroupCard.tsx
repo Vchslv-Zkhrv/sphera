@@ -1,5 +1,5 @@
 import {FC, useContext, useState, useEffect} from "react"
-import { IGroup } from "../../usertypes";
+import { IGroup, ISession } from "../../usertypes";
 import { UserContext } from "../../usercontext";
 import styles from "./GroupCard.module.css";
 import StraightButton from "../UI/StraightButton";
@@ -26,9 +26,15 @@ const GroupCard:FC<IGroupCardProps> = ({group, updateCallback}) => {
     const [banFname, setBanFname] = useState<string>("");
     const [banLname, setBanLname] = useState<string>("");
 
+    const [sessions, setSessions] = useState<ISession[]>([]);
+
     const fetchLink = async () => {
         const url = await UserApi.getJoinGropLink(group.id)
         return url;
+    }
+
+    const fetchSessions =async ( ) => {
+        setSessions(await UserApi.getGroupSessions(group.id))
     }
 
     const handleClickStudent = (id:number, fname:string, lname:string) => {
@@ -101,7 +107,19 @@ const GroupCard:FC<IGroupCardProps> = ({group, updateCallback}) => {
                         </div>
                         <div className={styles.sessionsWrapper}>
                             <h5>Курсы</h5>
-
+                            <ul className={styles.sessions}>
+                                {sessions.map((s) => (
+                                    <li key={s.id}>
+                                        <p>{s.course.name}</p>
+                                        <p>Старт {s.date_started.toString()}</p>
+                                        {
+                                            !s.date_ended ?
+                                            <p>Не завершено</p> :
+                                            <p>Завершено {s.date_ended.toString()}</p>
+                                        }
+                                    </li>
+                                ))}
+                            </ul>                            
                         </div>
                     </div>
                     :
@@ -111,5 +129,6 @@ const GroupCard:FC<IGroupCardProps> = ({group, updateCallback}) => {
         </div>
     )
 }
+
 
 export default GroupCard;

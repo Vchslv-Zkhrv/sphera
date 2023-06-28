@@ -4,6 +4,7 @@ import StraightButton from "../UI/StraightButton";
 import DimmedButton from "../UI/DimmedButton";
 import styles from "./SelectCreatingRole.module.css"
 import StudentRegistPopup from "../StudentRegistPopup/StudentRegistPopup";
+import TeacherRegistPopup from "../TeacherRegistPopup/TeacherRegistPopup";
 
 interface ISelectRoleProps {
     visible: boolean
@@ -22,13 +23,15 @@ const SelectCreatingRole:FC<ISelectRoleProps> = ({visible, setVisible}) => {
     }
 
     const handleTeacher = () => {
-
+        setVisible(false);
+        setTeacherVisible(true);
     }
 
     return (
         <>
 
             <StudentRegistPopup visible={studentVisible} setVisible={setStudentVisible}/>
+            <TeacherRegistPopup visible={teacherVisible} setVisible={setTeacherVisible}/>
 
             <Popup visible={visible} setVisible={setVisible}>
                 <h4>Создание аккаунта</h4>

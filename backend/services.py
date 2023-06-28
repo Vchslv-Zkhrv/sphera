@@ -983,3 +983,89 @@ def get_student_model(
     if user.role != "student":
         raise _fastapi.HTTPException(400, "user not a student")
     return user
+
+
+async def get_all_companies_names(
+        se: _orm.Session
+):
+    return list(
+        _schemas.CompanyShort.from_orm(c)
+        for c in
+        se.query(_models.Company)
+    )
+
+
+async def start_individual_session(
+        student: _models.User,
+        course: _models.Course,
+        se: _orm.Session
+):
+    session = _models.Session(
+        course_id=course.id,
+        date_started=_dt.datetime.now(),
+        active=True
+    )
+    se.add(session)
+    se.commit()
+    se.refresh(session)
+    se.add(_models.IndividualSessions(
+        session_id=session.id,
+        student_id=student.id
+    ))
+    se.commit()
+
+
+async def start_group_session(
+        group: _models.Group,
+        course: _models.Course,
+        se: _orm.Session
+):
+    session = _models.Session(
+        course_id=course.id,
+        date_started=_dt.datetime.now(),
+        active=True
+    )
+    se.add(session)
+    se.commit()
+    se.refresh(session)
+    se.add(_models.GroupSessions(
+        session_id=session.id,
+        group_id=group.id
+    ))
+    se.commit()
+
+
+async def get_student_sessions(
+        student: _models.User,
+        se: _orm.Session
+):
+    return list(
+        _schemas.Session(
+            id=s.session.id,
+            date_started=s.session.date_started,
+            date_endend=s.session.date_ended,
+            course=_schemas.CompanyShort.from_orm(s.session.course)
+        )
+        for s in
+        (
+            se
+            .query(_models.IndividualSessions)
+            .filter_by(user_id=student.id)
+        )
+    )
+
+
+async def get_group_sessions(
+        group: _models.Group,
+        se: _orm.Session
+):
+    return list(
+        _schemas.Session(
+            id=s.session.id,
+            date_started=s.session.date_started,
+            date_endend=s.session.date_ended,
+            course=_schemas.CompanyShort.from_orm(s.session.course)
+        )
+        for s in
+        se.query(_models.GroupSessions).filter_by(group_id=group.id)
+    )

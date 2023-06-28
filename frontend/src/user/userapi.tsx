@@ -161,4 +161,85 @@ export class UserApi {
         return response.status
     }
 
+    static getCompanies = async () => {
+        const response = await fetch(
+            "/api/companies/all/names",
+            {
+                "method": "GET",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        if (response.ok) {return await response.json();}
+        else {return [];}
+    }   
+
+    static getCourse = async (courseId: any) => {
+        const response = await fetch(
+            `/api/courses/${courseId}`,
+            {
+                "method": "GET",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        return response;
+    }   
+
+    
+    static signupTeacher = async (
+        email: string,
+        password: string,
+        fname: string,
+        lname: string,
+        sname: string,
+        company: number,
+        specializations: string[]
+    ) => {
+        const response = await fetch(
+            "/api/students",
+            {
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": JSON.stringify({email, password, fname, lname, sname, company, specializations, bio:""})
+            }
+        );
+        return response.status
+    }
+
+    
+    static getGroupSessions = async (groupId: number) =>  {
+        const response = await fetch(
+            `/api/groups/${groupId}/sessions`,
+            {
+                "method": "GET",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        if (response.ok) { return await response.json() }
+        else {return []}
+    }
+
+
+    static getStudentSessions = async () =>  {
+        const response = await fetch(
+            "/api/students/me/sessions",
+            {
+                "method": "GET",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        if (response.ok) { return await response.json() }
+        else {return []}
+    }
+
+    static startGroupSession = async (groupId: any, courseId: any) => {
+        const response = await fetch(
+            `/api/groups/${groupId}/sessions/?course_id=${courseId}`,
+            {
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"}
+            }
+        )
+        return response.status
+    }
+
 }

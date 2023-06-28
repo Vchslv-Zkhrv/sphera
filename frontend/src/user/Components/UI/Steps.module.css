@@ -1,0 +1,41 @@
+.step {
+    border-radius: 50%;
+    height: 24px;
+    width: 24px;
+    border: 1px solid #00C89C;
+    color: rgb(100, 100, 100);
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.step:hover {
+    background-color: rgba(0, 200, 156, 0.2);
+}
+
+.stepCurrent {
+    border-radius: 50%;
+    height: 24px;
+    width: 24px;
+    border: 1px solid #00C89C;
+    color: white;
+    background-color: #00C89C;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    justify-content: center;
+}
+
+.stepCurrent:hover {
+    background-color: rgba(0, 200, 156, 0.8);
+}
+
+.steps {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}

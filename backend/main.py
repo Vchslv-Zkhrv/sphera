@@ -639,7 +639,8 @@ async def create_course_lesson(
     if role not in ("student", "teacher"):
         return _cookies.get_unsign_response()
     course = _services.get_course_model(id, session)
-    if course.author_id != model.id:
+    uid = model.id if role == "student" else model.user.id
+    if course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     lesson = await _services.create_lesson(course, data, session)
     _courses.initialize_lesson(course.id, lesson.number)
@@ -661,7 +662,8 @@ async def create_course_step(
     if role not in ("student", "teacher"):
         return _cookies.get_unsign_response()
     course = _services.get_course_model(id, session)
-    if course.author_id != model.id:
+    uid = model.id if role == "student" else model.user.id
+    if course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     await _services.get_lesson_model(course, number)
     if not _courses.is_lesson_initialized(id, number):
@@ -691,7 +693,8 @@ async def set_step_text(
     await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
         raise _fastapi.HTTPException(404, "no such lesson")
-    if role != "admin" or model.id != course.author.id:
+    uid = model.id if role == "student" else model.user.id
+    if role != "admin" and course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     await _courses.write_into_step(id, lesson_number, step_number, text.text)
 
@@ -714,7 +717,8 @@ async def load_step_image(
     if not role:
         return _cookies.get_unsign_response()
     course = _services.get_course_model(id, session)
-    if role != "admin" or course.author_id != model.id:
+    uid = model.id if role == "student" else model.user.id
+    if role != "admin" and course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     await _services.get_lesson_model(course, lesson_number)
     if not _courses.is_lesson_initialized(id, lesson_number):
@@ -788,7 +792,8 @@ async def update_lesson(
         return _cookies.get_unsign_response()
 
     course = _services.get_course_model(id, session)
-    if role != "admin" or course.author_id != model.id:
+    uid = model.id if role == "student" else model.user.id
+    if role != "admin" and course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     lesson = await _services.get_lesson_model(course, number)
     await _services.update_lesson(lesson, update, session)
@@ -812,7 +817,8 @@ async def delete_lesson(
         return _cookies.get_unsign_response()
 
     course = _services.get_course_model(id, session)
-    if role != "admin" or course.author_id != model.id:
+    uid = model.id if role == "student" else model.user.id
+    if role != "admin" and course.author_id != uid:
         raise _fastapi.HTTPException(400, "Permission denied")
     lesson = await _services.get_lesson_model(course, number)
     await _services.drop_lesson(lesson, session)
@@ -977,3 +983,51 @@ async def ban_student_from_group(
     student = _services.get_student_model(sid, session)
     group = _services.get_group_model(gid, session)
     await _services.ban_from_group(student, group, session)
+
+
+@fastapi.get("/api/companies/all/names", response_model=_typing.List[_schemas.CompanyShort])
+async def get_all_companies_names(
+        user: cookietype = None,
+        session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    await _services.check_cookie_and_update_user_online(user, session)
+    return await _services.get_all_companies_names(session)
+
+
+@fastapi.get("/api/groups/{id}/sessions", response_model=_typing.List[_schemas.Session])
+async def get_group_sessions(
+    id: int,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        return _cookies.get_unsign_response()
+    group = _services.get_group_model(id, session)
+    return await _services.get_group_sessions(group, session)
+
+
+@fastapi.get("/api/studets/me/sessions", response_model=_typing.List[_schemas.Session])
+async def get_student_sessions(
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    model, role = await _services.get_account_by_cookie(user, session)
+    if role != "student":
+        return _cookies.get_unsign_response()
+    return await _services.get_student_sessions(model, session)
+
+
+@fastapi.post("/api/groups/{id}/sessions/", status_code=204)
+async def start_group_session(
+    course_id: int,
+    id: int,
+    user: cookietype = None,
+    session: _orm.Session = _fastapi.Depends(_services.get_db_session)
+):
+    _, role = await _services.get_account_by_cookie(user, session)
+    if role != "teacher":
+        return _cookies.get_unsign_response()
+    group = _services.get_group_model(id, session)
+    course = _services.get_course_model(course_id, session)
+    await _services.start_group_session(group, course, session)

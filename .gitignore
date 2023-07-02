@@ -10,3 +10,10 @@ backend/applications/__pycache__
 backend/staticpages/__pycache__
 backend/courses/__pycache__
 backend/news/__pycache__
+backend/news/news
+backend/news/images
+backend/data
+backend/courses/courses
+backend/applications/companies
+backend/applications/tags
+backend/chats/chats

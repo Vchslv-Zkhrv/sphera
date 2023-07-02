@@ -394,12 +394,24 @@ class ChatCreate(_Base):
     members: _typing.List[int]
 
 
-class Message(_Base):
+class _MessageBase(_Base):
 
-    sender: int
-    date: _dt.datetime
-    text: _typing.Optional[str] = None
-    image: _typing.Optional[str] = None
+    sender: int = _Field(alias="s")
+    text: str = _Field(alias="t", default="")
+    media: _typing.List[int] = _Field(alias="m", default=[])
+
+
+class MessageCreate(_MessageBase):
+
+    pass
+
+
+class Message(_MessageBase):
+
+    date: _dt.datetime = _Field(alias="d")
+    edited: bool = _Field(alias="e", default=False)
+    removed: bool = _Field(alias="r", default=False)
+    id: int = _Field(alias="i")
 
 
 class Admin(_Base):
